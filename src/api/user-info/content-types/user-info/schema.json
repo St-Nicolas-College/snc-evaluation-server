@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "user_infos",
+  "info": {
+    "singularName": "user-info",
+    "pluralName": "user-infos",
+    "displayName": "UserInfo"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "employee_no": {
+      "type": "string",
+      "unique": true
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "middle_name": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "user_info"
+    }
+  }
+}
