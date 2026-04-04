@@ -430,6 +430,73 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiEvaluationCriteriaEvaluationCriteria
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'evaluation_criterias';
+  info: {
+    displayName: 'EvaluationCriteria';
+    pluralName: 'evaluation-criterias';
+    singularName: 'evaluation-criteria';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    key: Schema.Attribute.String;
+    label: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::evaluation-criteria.evaluation-criteria'
+    > &
+      Schema.Attribute.Private;
+    maxScore: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<5>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
+  collectionName: 'evaluations';
+  info: {
+    displayName: 'Evaluation';
+    pluralName: 'evaluations';
+    singularName: 'evaluation';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    comment: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::evaluation.evaluation'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    ratings: Schema.Attribute.JSON;
+    student: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    student_bak: Schema.Attribute.Relation<'oneToOne', 'api::student.student'>;
+    submittedAt: Schema.Attribute.DateTime;
+    teacher: Schema.Attribute.Relation<'oneToOne', 'api::teacher.teacher'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiRefreshTokenRefreshToken
   extends Struct.CollectionTypeSchema {
   collectionName: 'refresh_tokens';
@@ -461,6 +528,103 @@ export interface ApiRefreshTokenRefreshToken
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+  };
+}
+
+export interface ApiScaleOptionScaleOption extends Struct.CollectionTypeSchema {
+  collectionName: 'scale_options';
+  info: {
+    displayName: 'ScaleOption';
+    pluralName: 'scale-options';
+    singularName: 'scale-option';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    label: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::scale-option.scale-option'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    value: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+  };
+}
+
+export interface ApiStudentStudent extends Struct.CollectionTypeSchema {
+  collectionName: 'students';
+  info: {
+    displayName: 'Student';
+    pluralName: 'students';
+    singularName: 'student';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.String;
+    evaluation: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::evaluation.evaluation'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::student.student'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    student_no: Schema.Attribute.String & Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTeacherTeacher extends Struct.CollectionTypeSchema {
+  collectionName: 'teachers';
+  info: {
+    displayName: 'Teacher';
+    pluralName: 'teachers';
+    singularName: 'teacher';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    department: Schema.Attribute.String;
+    employee_no: Schema.Attribute.String;
+    evaluation: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::evaluation.evaluation'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::teacher.teacher'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -970,6 +1134,10 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    evaluations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::evaluation.evaluation'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1019,7 +1187,12 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::evaluation-criteria.evaluation-criteria': ApiEvaluationCriteriaEvaluationCriteria;
+      'api::evaluation.evaluation': ApiEvaluationEvaluation;
       'api::refresh-token.refresh-token': ApiRefreshTokenRefreshToken;
+      'api::scale-option.scale-option': ApiScaleOptionScaleOption;
+      'api::student.student': ApiStudentStudent;
+      'api::teacher.teacher': ApiTeacherTeacher;
       'api::user-info.user-info': ApiUserInfoUserInfo;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

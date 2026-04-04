@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "students",
+  "info": {
+    "singularName": "student",
+    "pluralName": "students",
+    "displayName": "Student"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "student_no": {
+      "type": "string",
+      "unique": true
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "evaluation": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evaluation.evaluation",
+      "mappedBy": "student_bak"
+    }
+  }
+}

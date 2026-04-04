@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "evaluation_criterias",
+  "info": {
+    "singularName": "evaluation-criteria",
+    "pluralName": "evaluation-criterias",
+    "displayName": "EvaluationCriteria"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "key": {
+      "type": "string"
+    },
+    "maxScore": {
+      "type": "integer",
+      "default": 5
+    }
+  }
+}

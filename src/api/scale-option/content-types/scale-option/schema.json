@@ -1,0 +1,22 @@
+{
+  "kind": "collectionType",
+  "collectionName": "scale_options",
+  "info": {
+    "singularName": "scale-option",
+    "pluralName": "scale-options",
+    "displayName": "ScaleOption"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "value": {
+      "type": "integer",
+      "default": 0
+    },
+    "label": {
+      "type": "string"
+    }
+  }
+}

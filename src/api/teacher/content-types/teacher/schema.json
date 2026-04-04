@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "teachers",
+  "info": {
+    "singularName": "teacher",
+    "pluralName": "teachers",
+    "displayName": "Teacher"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "employee_no": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "department": {
+      "type": "string"
+    },
+    "evaluation": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evaluation.evaluation",
+      "mappedBy": "teacher"
+    }
+  }
+}

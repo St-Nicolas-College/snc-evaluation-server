@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "evaluations",
+  "info": {
+    "singularName": "evaluation",
+    "pluralName": "evaluations",
+    "displayName": "Evaluation"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "student_bak": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::student.student",
+      "inversedBy": "evaluation"
+    },
+    "teacher": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::teacher.teacher",
+      "inversedBy": "evaluation"
+    },
+    "ratings": {
+      "type": "json"
+    },
+    "submittedAt": {
+      "type": "datetime"
+    },
+    "student": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "evaluations"
+    },
+    "comment": {
+      "type": "text"
+    }
+  }
+}
