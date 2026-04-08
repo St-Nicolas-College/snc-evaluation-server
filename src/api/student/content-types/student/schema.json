@@ -20,12 +20,6 @@
     },
     "email": {
       "type": "string"
-    },
-    "evaluation": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::evaluation.evaluation",
-      "mappedBy": "student_bak"
     }
   }
 }

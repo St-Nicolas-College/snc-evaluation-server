@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "evaluation_responses",
+  "info": {
+    "singularName": "evaluation-response",
+    "pluralName": "evaluation-responses",
+    "displayName": "EvaluationResponse"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "score": {
+      "type": "integer"
+    }
+  }
+}

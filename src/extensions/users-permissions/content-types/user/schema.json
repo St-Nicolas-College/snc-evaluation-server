@@ -77,12 +77,6 @@
       "relation": "oneToOne",
       "target": "api::user-info.user-info",
       "mappedBy": "users_permissions_user"
-    },
-    "evaluations": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::evaluation.evaluation",
-      "mappedBy": "student"
     }
   }
 }

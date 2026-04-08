@@ -430,6 +430,43 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiEvaluationBatchEvaluationBatch
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'evaluation_batches';
+  info: {
+    displayName: 'EvaluationBatch';
+    pluralName: 'evaluation-batches';
+    singularName: 'evaluation-batch';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    course: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date;
+    days_time: Schema.Attribute.String;
+    evaluations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::evaluation.evaluation'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::evaluation-batch.evaluation-batch'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    school_year: Schema.Attribute.String;
+    semester: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEvaluationCriteriaEvaluationCriteria
   extends Struct.CollectionTypeSchema {
   collectionName: 'evaluation_criterias';
@@ -445,16 +482,82 @@ export interface ApiEvaluationCriteriaEvaluationCriteria
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    key: Schema.Attribute.String;
-    label: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::evaluation-criteria.evaluation-criteria'
     > &
       Schema.Attribute.Private;
-    maxScore: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<5>;
+    order: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
+    section: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::evaluation-section.evaluation-section'
+    >;
+    statement: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiEvaluationResponseEvaluationResponse
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'evaluation_responses';
+  info: {
+    displayName: 'EvaluationResponse';
+    pluralName: 'evaluation-responses';
+    singularName: 'evaluation-response';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::evaluation-response.evaluation-response'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    score: Schema.Attribute.Integer;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiEvaluationSectionEvaluationSection
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'evaluation_sections';
+  info: {
+    displayName: 'EvaluationSection';
+    pluralName: 'evaluation-sections';
+    singularName: 'evaluation-section';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    evaluation_criteria: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::evaluation-criteria.evaluation-criteria'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::evaluation-section.evaluation-section'
+    > &
+      Schema.Attribute.Private;
+    order: Schema.Attribute.Integer;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -472,6 +575,11 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    average_score: Schema.Attribute.Decimal;
+    batch: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::evaluation-batch.evaluation-batch'
+    >;
     comment: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -483,14 +591,9 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    ratings: Schema.Attribute.JSON;
-    student: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
-    student_bak: Schema.Attribute.Relation<'oneToOne', 'api::student.student'>;
-    submittedAt: Schema.Attribute.DateTime;
-    teacher: Schema.Attribute.Relation<'oneToOne', 'api::teacher.teacher'>;
+    responses: Schema.Attribute.JSON;
+    teacher: Schema.Attribute.Relation<'manyToOne', 'api::teacher.teacher'>;
+    total_score: Schema.Attribute.Integer;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -575,10 +678,6 @@ export interface ApiStudentStudent extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     email: Schema.Attribute.String;
-    evaluation: Schema.Attribute.Relation<
-      'oneToOne',
-      'api::evaluation.evaluation'
-    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -610,8 +709,8 @@ export interface ApiTeacherTeacher extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     department: Schema.Attribute.String;
     employee_no: Schema.Attribute.String;
-    evaluation: Schema.Attribute.Relation<
-      'oneToOne',
+    evaluations: Schema.Attribute.Relation<
+      'oneToMany',
       'api::evaluation.evaluation'
     >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -1134,10 +1233,6 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
-    evaluations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::evaluation.evaluation'
-    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1187,7 +1282,10 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::evaluation-batch.evaluation-batch': ApiEvaluationBatchEvaluationBatch;
       'api::evaluation-criteria.evaluation-criteria': ApiEvaluationCriteriaEvaluationCriteria;
+      'api::evaluation-response.evaluation-response': ApiEvaluationResponseEvaluationResponse;
+      'api::evaluation-section.evaluation-section': ApiEvaluationSectionEvaluationSection;
       'api::evaluation.evaluation': ApiEvaluationEvaluation;
       'api::refresh-token.refresh-token': ApiRefreshTokenRefreshToken;
       'api::scale-option.scale-option': ApiScaleOptionScaleOption;

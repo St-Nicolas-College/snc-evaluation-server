@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "evaluation_sections",
+  "info": {
+    "singularName": "evaluation-section",
+    "pluralName": "evaluation-sections",
+    "displayName": "EvaluationSection"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer"
+    },
+    "evaluation_criteria": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::evaluation-criteria.evaluation-criteria",
+      "mappedBy": "section"
+    }
+  }
+}

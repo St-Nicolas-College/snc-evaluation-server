@@ -1,30 +1,36 @@
 {
   "kind": "collectionType",
-  "collectionName": "teachers",
+  "collectionName": "evaluation_batches",
   "info": {
-    "singularName": "teacher",
-    "pluralName": "teachers",
-    "displayName": "Teacher"
+    "singularName": "evaluation-batch",
+    "pluralName": "evaluation-batches",
+    "displayName": "EvaluationBatch"
   },
   "options": {
     "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
-    "employee_no": {
+    "semester": {
       "type": "string"
     },
-    "name": {
+    "school_year": {
       "type": "string"
     },
-    "department": {
+    "date": {
+      "type": "date"
+    },
+    "course": {
+      "type": "string"
+    },
+    "days_time": {
       "type": "string"
     },
     "evaluations": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::evaluation.evaluation",
-      "mappedBy": "teacher"
+      "mappedBy": "batch"
     }
   }
 }

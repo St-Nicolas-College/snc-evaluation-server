@@ -11,32 +11,29 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "student_bak": {
+    "comment": {
+      "type": "text"
+    },
+    "total_score": {
+      "type": "integer"
+    },
+    "average_score": {
+      "type": "decimal"
+    },
+    "batch": {
       "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::student.student",
-      "inversedBy": "evaluation"
+      "relation": "manyToOne",
+      "target": "api::evaluation-batch.evaluation-batch",
+      "inversedBy": "evaluations"
     },
     "teacher": {
       "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::teacher.teacher",
-      "inversedBy": "evaluation"
-    },
-    "ratings": {
-      "type": "json"
-    },
-    "submittedAt": {
-      "type": "datetime"
-    },
-    "student": {
-      "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
+      "target": "api::teacher.teacher",
       "inversedBy": "evaluations"
     },
-    "comment": {
-      "type": "text"
+    "responses": {
+      "type": "json"
     }
   }
 }

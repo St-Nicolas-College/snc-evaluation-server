@@ -11,15 +11,17 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "label": {
+    "statement": {
       "type": "string"
     },
-    "key": {
-      "type": "string"
+    "order": {
+      "type": "integer"
     },
-    "maxScore": {
-      "type": "integer",
-      "default": 5
+    "section": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::evaluation-section.evaluation-section",
+      "inversedBy": "evaluation_criteria"
     }
   }
 }
