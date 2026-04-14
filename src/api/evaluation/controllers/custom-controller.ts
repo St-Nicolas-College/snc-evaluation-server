@@ -126,15 +126,54 @@ export default {
           );
         }
 
-        const responseValues = Object.values(item.responses).map((score) =>
-          Number(score || 0),
-        );
-        const total_score = responseValues.reduce(
-          (sum, score) => sum + score,
+        const crierionIds = Object.keys(item.responses).map((id) => Number(id));
+
+        const criteria = await strapi.entityService.findMany("api::evaluation-criteria.evaluation-criteria", 
+          {
+            filters: {
+              id: {
+                $in: crierionIds,
+              }
+            },
+            populate: {
+              section: true
+            },
+            fields: ["id", "statement", "order"],
+            sort: ["order:asc"],
+            pagination: {
+              pageSize: 100
+            }
+          }
+        )
+
+        const enrichedResponses = criteria.map((criterion: any) => ({
+          section: criterion.section?.title || "",
+          sectionOrder: criterion.section?.order || 0,
+          criterion_id: criterion.id,
+          order: criterion.order,
+          statement: criterion.statement,
+          score: Number(item.responses[criterion.id] || 0)
+        }))
+
+        // Sort by section
+        enrichedResponses.sort((a, b) => {
+          if (a.sectionOrder === b.sectionOrder) {
+            return a.order - b.order;
+          }
+          //return a.section.localeCompare(b.section)
+          return a.sectionOrder - b.sectionOrder
+        })
+
+        // const responseValues = Object.values(item.responses).map((score) =>
+        //   Number(score || 0),
+        // );
+
+        const total_score = enrichedResponses.reduce(
+          (sum, response) => sum + response.score,
           0,
         );
-        const average_score = responseValues.length
-          ? Number((total_score / responseValues.length).toFixed(2))
+        const average_score = enrichedResponses.length
+          ? Number((total_score / enrichedResponses.length).toFixed(2))
           : 0;
 
         const evaluation = await strapi.entityService.create(
@@ -144,7 +183,7 @@ export default {
               batch: batch.id,
               teacher: item.teacher,
               //subject: item.subject,
-              responses: item.responses,
+              responses: enrichedResponses,
               total_score,
               average_score,
               comment: item.comment || "",
