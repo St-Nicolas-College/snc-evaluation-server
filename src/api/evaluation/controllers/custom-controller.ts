@@ -95,9 +95,9 @@ export default {
       if (
         !semester ||
         !school_year ||
-        !date ||
+        // !date ||
         !course ||
-        !days_time ||
+        // !days_time ||
         !evaluations ||
         !Array.isArray(evaluations)
       ) {
