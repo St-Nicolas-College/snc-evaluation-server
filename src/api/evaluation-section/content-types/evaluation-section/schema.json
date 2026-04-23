@@ -22,6 +22,12 @@
       "relation": "oneToMany",
       "target": "api::evaluation-criteria.evaluation-criteria",
       "mappedBy": "section"
+    },
+    "evaluation_type": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::evaluation-type.evaluation-type",
+      "inversedBy": "evaluation_sections"
     }
   }
 }

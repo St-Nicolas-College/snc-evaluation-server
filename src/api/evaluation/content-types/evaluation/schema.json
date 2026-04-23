@@ -26,14 +26,26 @@
       "target": "api::evaluation-batch.evaluation-batch",
       "inversedBy": "evaluations"
     },
+    "dean_coordinator": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::teacher.teacher",
+      "inversedBy": "dean_evaluations"
+    },
+    "responses": {
+      "type": "json"
+    },
+    "strengths": {
+      "type": "string"
+    },
+    "areas_for_improvement": {
+      "type": "string"
+    },
     "teacher": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::teacher.teacher",
-      "inversedBy": "evaluations"
-    },
-    "responses": {
-      "type": "json"
+      "inversedBy": "teacher_evaluations"
     }
   }
 }

@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "evaluation_types",
+  "info": {
+    "singularName": "evaluation-type",
+    "pluralName": "evaluation-types",
+    "displayName": "EvaluationType"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "code": {
+      "type": "uid",
+      "targetField": "name"
+    },
+    "max_score": {
+      "type": "integer"
+    },
+    "min_score": {
+      "type": "integer"
+    },
+    "scale_labels": {
+      "type": "json"
+    },
+    "evaluation_sections": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::evaluation-section.evaluation-section",
+      "mappedBy": "evaluation_type"
+    },
+    "evaluation_batches": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::evaluation-batch.evaluation-batch",
+      "mappedBy": "evaluation_type"
+    }
+  }
+}
