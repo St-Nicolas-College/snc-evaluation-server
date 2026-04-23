@@ -26,6 +26,8 @@ export default {
         populate: {
           role: true,
           user_info: true,
+          teacher: true,
+          student: true
         },
       });
 
@@ -68,6 +70,8 @@ export default {
         email: user.email,
         role: user.role?.name,
         user_info: user.user_info,
+        teacher: user.teacher,
+        student: user.student
       },
     });
   },
@@ -84,7 +88,7 @@ export default {
       .query("api::refresh-token.refresh-token")
       .findOne({
         where: { token: refreshToken },
-        populate: { user: { populate: ["role", "user_info"] } },
+        populate: { user: { populate: ["role", "user_info", "teacher", "student"] } },
       });
 
     if (!stored || new Date(stored.expiresAt) < new Date()) {
@@ -113,6 +117,8 @@ export default {
         email: user.email,
         role: user.role?.name,
         user_info: user.user_info,
+        teacher: user.teacher,
+        student: user.student
       },
     });
   },

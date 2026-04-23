@@ -11,7 +11,7 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "student_no": {
+    "student_id": {
       "type": "string",
       "unique": true
     },
@@ -26,6 +26,15 @@
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user",
       "mappedBy": "student"
+    },
+    "course": {
+      "type": "string"
+    },
+    "year_level": {
+      "type": "string"
+    },
+    "section": {
+      "type": "string"
     }
   }
 }
