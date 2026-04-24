@@ -13,7 +13,7 @@ export default {
       path: '/submit-multiple-evaluations',
       handler: 'custom-controller.submitMultipleEvaluations',
       config: {
-        auth: false
+        auth: {}
       }
     }
   ],

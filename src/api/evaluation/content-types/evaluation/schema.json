@@ -36,16 +36,28 @@
       "type": "json"
     },
     "strengths": {
-      "type": "string"
+      "type": "text"
     },
     "areas_for_improvement": {
-      "type": "string"
+      "type": "text"
     },
     "teacher": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::teacher.teacher",
       "inversedBy": "teacher_evaluations"
+    },
+    "subject": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::subject.subject",
+      "inversedBy": "evaluations"
+    },
+    "evaluator_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "evaluations"
     }
   }
 }

@@ -89,6 +89,12 @@
       "relation": "oneToOne",
       "target": "api::student.student",
       "inversedBy": "user"
+    },
+    "evaluations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::evaluation.evaluation",
+      "mappedBy": "evaluator_user"
     }
   }
 }

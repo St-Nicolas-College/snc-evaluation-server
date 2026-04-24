@@ -84,107 +84,114 @@ async registerTeacher(ctx) {
   },
 
   // UPDATE TEACHER WITH USER
-  async updateTeacherWithUser(ctx) {
-    try {
-      const { id } = ctx.params
-      const {
-        employee_no,
-        name,
-        department,
-        email,
-        roleName
-      } = ctx.request.body
+ async updateTeacherWithUser(ctx) {
+  try {
+    const { id } = ctx.params
 
-      const teacher = await strapi.entityService.findOne('api::teacher.teacher', id, {
-        populate: {
-          user: {
-            populate: ['role']
-          }
-        }
-      })
+    const {
+      employee_no,
+      name,
+      department,
+      email,
+      roleName,
+      assigned_subjects
+    } = ctx.request.body
 
-      if (!teacher) {
-        return ctx.notFound('Teacher not found.')
+    const teacher = await strapi.entityService.findOne('api::teacher.teacher', id, {
+      populate: {
+        user: {
+          populate: ['role']
+        },
+        assigned_subjects: true
       }
-      // @ts-ignore
-      const teacherUser = teacher.user
-      if (!teacherUser) {
-        return ctx.badRequest('Linked user account not found.')
-      }
+    })
 
-      if (employee_no) {
-        const duplicateTeacher = await strapi.db.query('api::teacher.teacher').findOne({
-          where: {
-            employee_no
-          }
-        })
-
-        if (duplicateTeacher && duplicateTeacher.id !== teacher.id) {
-          return ctx.badRequest('Employee number already exists.')
-        }
-      }
-
-      if (email) {
-        const duplicateUser = await strapi.db.query('plugin::users-permissions.user').findOne({
-          where: {
-            email
-          }
-        })
-
-        if (duplicateUser && duplicateUser.id !== teacherUser.id) {
-          return ctx.badRequest('Email already exists.')
-        }
-      }
-
-      await strapi.entityService.update('api::teacher.teacher', id, {
-        data: {
-          employee_no,
-          name,
-          department
-        }
-      })
-
-      const userUpdateData: any = {}
-      if (email) userUpdateData.email = email
-
-      if (roleName) {
-        const role = await strapi.db.query('plugin::users-permissions.role').findOne({
-          where: {
-            name: roleName
-          }
-        })
-
-        if (!role) {
-          return ctx.badRequest(`Role "${roleName}" not found.`)
-        }
-
-        userUpdateData.role = role.id
-      }
-
-      if (Object.keys(userUpdateData).length > 0) {
-        await strapi.db.query('plugin::users-permissions.user').update({
-          where: { id: teacherUser.id },
-          data: userUpdateData
-        })
-      }
-
-      const updatedTeacher = await strapi.entityService.findOne('api::teacher.teacher', id, {
-        populate: {
-          user: {
-            populate: ['role']
-          }
-        }
-      })
-
-      return ctx.send({
-        message: 'Teacher updated successfully.',
-        data: updatedTeacher
-      })
-    } catch (error) {
-      console.error(error)
-      return ctx.internalServerError('Something went wrong while updating teacher.')
+    if (!teacher) {
+      return ctx.notFound('Teacher not found.')
     }
-  },
+
+    // @ts-ignore
+    const teacherUser = teacher.user
+    if (!teacherUser) {
+      return ctx.badRequest('Linked user account not found.')
+    }
+
+    if (employee_no) {
+      const duplicateTeacher = await strapi.db.query('api::teacher.teacher').findOne({
+        where: { employee_no }
+      })
+
+      if (duplicateTeacher && duplicateTeacher.id !== teacher.id) {
+        return ctx.badRequest('Employee number already exists.')
+      }
+    }
+
+    if (email) {
+      const duplicateUser = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { email }
+      })
+
+      if (duplicateUser && duplicateUser.id !== teacherUser.id) {
+        return ctx.badRequest('Email already exists.')
+      }
+    }
+
+    const updateData: any = {}
+
+    if (employee_no !== undefined) updateData.employee_no = employee_no
+    if (name !== undefined) updateData.name = name
+    if (department !== undefined) updateData.department = department
+
+    if (assigned_subjects !== undefined) {
+      updateData.assigned_subjects = {
+        set: assigned_subjects
+      }
+    }
+
+    await strapi.entityService.update('api::teacher.teacher', id, {
+      data: updateData
+    })
+
+    const userUpdateData: any = {}
+    if (email) userUpdateData.email = email
+
+    if (roleName) {
+      const role = await strapi.db.query('plugin::users-permissions.role').findOne({
+        where: { name: roleName }
+      })
+
+      if (!role) {
+        return ctx.badRequest(`Role "${roleName}" not found.`)
+      }
+
+      userUpdateData.role = role.id
+    }
+
+    if (Object.keys(userUpdateData).length > 0) {
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: teacherUser.id },
+        data: userUpdateData
+      })
+    }
+
+    const updatedTeacher = await strapi.entityService.findOne('api::teacher.teacher', id, {
+      populate: {
+        user: {
+          populate: ['role']
+        },
+        assigned_subjects: true
+      }
+    })
+
+    return ctx.send({
+      message: 'Teacher updated successfully.',
+      data: updatedTeacher
+    })
+  } catch (error) {
+    console.error(error)
+    return ctx.internalServerError('Something went wrong while updating teacher.')
+  }
+},
 
   // DELETE TEACHER WITH USER
   async deleteTeacherWithUser(ctx) {

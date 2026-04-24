@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "subjects",
+  "info": {
+    "singularName": "subject",
+    "pluralName": "subjects",
+    "displayName": "Subject"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "code": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "teachers": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::teacher.teacher",
+      "inversedBy": "assigned_subjects"
+    },
+    "evaluations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::evaluation.evaluation",
+      "mappedBy": "subject"
+    }
+  }
+}

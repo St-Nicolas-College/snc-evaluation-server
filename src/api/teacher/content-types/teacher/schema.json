@@ -37,6 +37,18 @@
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user",
       "mappedBy": "teacher"
+    },
+    "students": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::student.student",
+      "mappedBy": "assigned_teachers"
+    },
+    "assigned_subjects": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::subject.subject",
+      "mappedBy": "teachers"
     }
   }
 }

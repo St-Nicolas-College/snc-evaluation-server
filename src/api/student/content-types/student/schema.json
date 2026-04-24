@@ -35,6 +35,12 @@
     },
     "section": {
       "type": "string"
+    },
+    "assigned_teachers": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::teacher.teacher",
+      "inversedBy": "students"
     }
   }
 }
