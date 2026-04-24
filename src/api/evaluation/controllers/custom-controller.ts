@@ -297,7 +297,7 @@ export default {
       const userId = ctx.state.user?.id;
 
       if (!userId) {
-        return ctx.unauthorized('User not authenticated.')
+        return ctx.unauthorized("User not authenticated.");
       }
 
       const {
@@ -376,6 +376,7 @@ export default {
           evaluation_type,
         });
 
+        // Check for duplicate evaluation for student - faculty evaluation
         if (isStudentFaculty) {
           if (!item.teacher || !item.subject) {
             return ctx.badRequest(
@@ -409,6 +410,35 @@ export default {
           if (existing) {
             return ctx.badRequest(
               "You already evaluated this teacher for this subject in this semester and school year.",
+            );
+          }
+        }
+
+        // Check for duplicate evaluation for faculty - dean evaluation
+        if (isFacultyDean) {
+          const existing = await strapi.db
+            .query("api::evaluation.evaluation")
+            .findOne({
+              where: {
+                evaluator_user: {
+                  id: userId,
+                },
+                dean_coordinator: {
+                  id: item.dean_coordinator,
+                },
+                batch: {
+                  semester,
+                  school_year,
+                  evaluation_type: {
+                    id: evaluation_type,
+                  },
+                },
+              },
+            });
+
+          if (existing) {
+            return ctx.badRequest(
+              "You already evaluated this dean/coordinator for this semester and school year.",
             );
           }
         }
