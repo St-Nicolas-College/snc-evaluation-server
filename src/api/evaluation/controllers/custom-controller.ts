@@ -332,6 +332,7 @@ export default {
 
       const isStudentFaculty = evalType.code === "student-faculty";
       const isFacultyDean = evalType.code === "faculty-dean-coordinator";
+      const isDeanFaculty = evalType?.code === "dean-to-faculty";
 
       const batch = await strapi.entityService.create(
         "api::evaluation-batch.evaluation-batch",
@@ -443,6 +444,35 @@ export default {
           }
         }
 
+        // Check for duplicate evaluation for dean - faculty evaluation
+        if (isDeanFaculty) {
+          const existing = await strapi.db
+            .query("api::evaluation.evaluation")
+            .findOne({
+              where: {
+                evaluator_user: {
+                  id: userId,
+                },
+                teacher: {
+                  id: item.teacher,
+                },
+                batch: {
+                  semester,
+                  school_year,
+                  evaluation_type: {
+                    id: evaluation_type,
+                  },
+                },
+              },
+            });
+
+          if (existing) {
+            return ctx.badRequest(
+              "You already evaluated this faculty member for this semester and school year.",
+            );
+          }
+        }
+
         const criterionIds = Object.keys(item.responses).map((id) =>
           Number(id),
         );
@@ -502,6 +532,8 @@ export default {
           comment: item.comment || "",
           strengths: item.strengths || "",
           areas_for_improvement: item.areas_for_improvement || "",
+          effectiveness: item.effectiveness || "",
+          suggested_activities: item.suggested_activities || "",
         };
 
         if (isStudentFaculty) {
@@ -511,6 +543,10 @@ export default {
 
         if (isFacultyDean) {
           evaluationData.dean_coordinator = item.dean_coordinator;
+        }
+
+        if (isDeanFaculty) {
+          evaluationData.teacher = item.teacher
         }
 
         const evaluation = await strapi.entityService.create(

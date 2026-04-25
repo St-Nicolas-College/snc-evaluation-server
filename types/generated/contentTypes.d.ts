@@ -639,6 +639,7 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::teacher.teacher'
     >;
+    effectiveness: Schema.Attribute.Text;
     evaluator_user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
@@ -653,6 +654,7 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
     responses: Schema.Attribute.JSON;
     strengths: Schema.Attribute.Text;
     subject: Schema.Attribute.Relation<'manyToOne', 'api::subject.subject'>;
+    suggested_activities: Schema.Attribute.Text;
     teacher: Schema.Attribute.Relation<'manyToOne', 'api::teacher.teacher'>;
     total_score: Schema.Attribute.Integer;
     updatedAt: Schema.Attribute.DateTime;

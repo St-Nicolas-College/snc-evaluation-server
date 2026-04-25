@@ -58,6 +58,12 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "evaluations"
+    },
+    "effectiveness": {
+      "type": "text"
+    },
+    "suggested_activities": {
+      "type": "text"
     }
   }
 }
