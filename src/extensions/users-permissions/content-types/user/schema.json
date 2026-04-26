@@ -95,6 +95,12 @@
       "relation": "oneToMany",
       "target": "api::evaluation.evaluation",
       "mappedBy": "evaluator_user"
+    },
+    "overall_feedbacks": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::overall-feedback.overall-feedback",
+      "mappedBy": "evaluator_user"
     }
   }
 }

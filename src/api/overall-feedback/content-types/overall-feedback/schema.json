@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "overall_feedbacks",
+  "info": {
+    "singularName": "overall-feedback",
+    "pluralName": "overall-feedbacks",
+    "displayName": "Overall Feedback"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "semester": {
+      "type": "string"
+    },
+    "school_year": {
+      "type": "string"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "overall_feedbacks"
+    },
+    "subject": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::subject.subject",
+      "inversedBy": "overall_feedbacks"
+    },
+    "student": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::student.student",
+      "inversedBy": "overall_feedbacks"
+    },
+    "evaluator_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "overall_feedbacks"
+    },
+    "responses": {
+      "type": "json"
+    },
+    "date": {
+      "type": "date"
+    },
+    "school_year_record": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::school-year.school-year",
+      "inversedBy": "overall_feedbacks"
+    }
+  }
+}

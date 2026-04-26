@@ -18,7 +18,10 @@
       "type": "string"
     },
     "department": {
-      "type": "string"
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::department.department",
+      "inversedBy": "teachers"
     },
     "dean_evaluations": {
       "type": "relation",

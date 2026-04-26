@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "school_years",
+  "info": {
+    "singularName": "school-year",
+    "pluralName": "school-years",
+    "displayName": "School Year"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "school_year": {
+      "type": "string"
+    },
+    "semester": {
+      "type": "string"
+    },
+    "sy_status": {
+      "type": "enumeration",
+      "default": "Inactive",
+      "enum": [
+        "Active",
+        "Inactive"
+      ]
+    },
+    "active_sy": {
+      "type": "boolean",
+      "default": false
+    },
+    "overall_feedbacks": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::overall-feedback.overall-feedback",
+      "mappedBy": "school_year_record"
+    }
+  }
+}

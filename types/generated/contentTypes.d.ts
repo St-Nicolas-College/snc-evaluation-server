@@ -430,6 +430,77 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
+  collectionName: 'courses';
+  info: {
+    displayName: 'Course';
+    pluralName: 'courses';
+    singularName: 'course';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    code: Schema.Attribute.UID<'name'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    department: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::department.department'
+    >;
+    description: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::course.course'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    overall_feedbacks: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::overall-feedback.overall-feedback'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    students: Schema.Attribute.Relation<'oneToMany', 'api::student.student'>;
+    subjects: Schema.Attribute.Relation<'oneToMany', 'api::subject.subject'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDepartmentDepartment extends Struct.CollectionTypeSchema {
+  collectionName: 'departments';
+  info: {
+    displayName: 'Department';
+    pluralName: 'departments';
+    singularName: 'department';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    code: Schema.Attribute.UID<'name'>;
+    courses: Schema.Attribute.Relation<'oneToMany', 'api::course.course'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::department.department'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    teachers: Schema.Attribute.Relation<'oneToMany', 'api::teacher.teacher'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEvaluationBatchEvaluationBatch
   extends Struct.CollectionTypeSchema {
   collectionName: 'evaluation_batches';
@@ -663,6 +734,49 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiOverallFeedbackOverallFeedback
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'overall_feedbacks';
+  info: {
+    displayName: 'Overall Feedback';
+    pluralName: 'overall-feedbacks';
+    singularName: 'overall-feedback';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    course: Schema.Attribute.Relation<'manyToOne', 'api::course.course'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date;
+    evaluator_user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::overall-feedback.overall-feedback'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    responses: Schema.Attribute.JSON;
+    school_year: Schema.Attribute.String;
+    school_year_record: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::school-year.school-year'
+    >;
+    semester: Schema.Attribute.String;
+    student: Schema.Attribute.Relation<'manyToOne', 'api::student.student'>;
+    subject: Schema.Attribute.Relation<'manyToOne', 'api::subject.subject'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiRefreshTokenRefreshToken
   extends Struct.CollectionTypeSchema {
   collectionName: 'refresh_tokens';
@@ -726,6 +840,42 @@ export interface ApiScaleOptionScaleOption extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSchoolYearSchoolYear extends Struct.CollectionTypeSchema {
+  collectionName: 'school_years';
+  info: {
+    displayName: 'School Year';
+    pluralName: 'school-years';
+    singularName: 'school-year';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    active_sy: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::school-year.school-year'
+    > &
+      Schema.Attribute.Private;
+    overall_feedbacks: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::overall-feedback.overall-feedback'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    school_year: Schema.Attribute.String;
+    semester: Schema.Attribute.String;
+    sy_status: Schema.Attribute.Enumeration<['Active', 'Inactive']> &
+      Schema.Attribute.DefaultTo<'Inactive'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiStudentStudent extends Struct.CollectionTypeSchema {
   collectionName: 'students';
   info: {
@@ -741,7 +891,7 @@ export interface ApiStudentStudent extends Struct.CollectionTypeSchema {
       'manyToMany',
       'api::teacher.teacher'
     >;
-    course: Schema.Attribute.String;
+    course: Schema.Attribute.Relation<'manyToOne', 'api::course.course'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -753,6 +903,10 @@ export interface ApiStudentStudent extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
+    overall_feedbacks: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::overall-feedback.overall-feedback'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     section: Schema.Attribute.String;
     student_id: Schema.Attribute.String & Schema.Attribute.Unique;
@@ -779,6 +933,7 @@ export interface ApiSubjectSubject extends Struct.CollectionTypeSchema {
   };
   attributes: {
     code: Schema.Attribute.String;
+    course: Schema.Attribute.Relation<'manyToOne', 'api::course.course'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -794,6 +949,10 @@ export interface ApiSubjectSubject extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
+    overall_feedbacks: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::overall-feedback.overall-feedback'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     teachers: Schema.Attribute.Relation<'manyToMany', 'api::teacher.teacher'>;
     updatedAt: Schema.Attribute.DateTime;
@@ -824,7 +983,10 @@ export interface ApiTeacherTeacher extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::evaluation.evaluation'
     >;
-    department: Schema.Attribute.String;
+    department: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::department.department'
+    >;
     employee_no: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -1365,6 +1527,10 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    overall_feedbacks: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::overall-feedback.overall-feedback'
+    >;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -1410,14 +1576,18 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::course.course': ApiCourseCourse;
+      'api::department.department': ApiDepartmentDepartment;
       'api::evaluation-batch.evaluation-batch': ApiEvaluationBatchEvaluationBatch;
       'api::evaluation-criteria.evaluation-criteria': ApiEvaluationCriteriaEvaluationCriteria;
       'api::evaluation-response.evaluation-response': ApiEvaluationResponseEvaluationResponse;
       'api::evaluation-section.evaluation-section': ApiEvaluationSectionEvaluationSection;
       'api::evaluation-type.evaluation-type': ApiEvaluationTypeEvaluationType;
       'api::evaluation.evaluation': ApiEvaluationEvaluation;
+      'api::overall-feedback.overall-feedback': ApiOverallFeedbackOverallFeedback;
       'api::refresh-token.refresh-token': ApiRefreshTokenRefreshToken;
       'api::scale-option.scale-option': ApiScaleOptionScaleOption;
+      'api::school-year.school-year': ApiSchoolYearSchoolYear;
       'api::student.student': ApiStudentStudent;
       'api::subject.subject': ApiSubjectSubject;
       'api::teacher.teacher': ApiTeacherTeacher;

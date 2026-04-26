@@ -27,9 +27,6 @@
       "target": "plugin::users-permissions.user",
       "mappedBy": "student"
     },
-    "course": {
-      "type": "string"
-    },
     "year_level": {
       "type": "string"
     },
@@ -41,6 +38,18 @@
       "relation": "manyToMany",
       "target": "api::teacher.teacher",
       "inversedBy": "students"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "students"
+    },
+    "overall_feedbacks": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::overall-feedback.overall-feedback",
+      "mappedBy": "student"
     }
   }
 }
