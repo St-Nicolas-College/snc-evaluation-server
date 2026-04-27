@@ -64,6 +64,21 @@
     },
     "suggested_activities": {
       "type": "text"
+    },
+    "feedback_sentiment": {
+      "type": "string"
+    },
+    "feedback_sentiment_score": {
+      "type": "decimal"
+    },
+    "feedback_keywords": {
+      "type": "json"
+    },
+    "feedback_sentiment_summary": {
+      "type": "text"
+    },
+    "feedback_sentiment_suggestion": {
+      "type": "text"
     }
   }
 }

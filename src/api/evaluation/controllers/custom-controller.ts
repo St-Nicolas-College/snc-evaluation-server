@@ -1,3 +1,5 @@
+import { analyzeFeedbackSentiment } from "../utils/openai-sentiment";
+
 type EvaluationItem = {
   teacher?: number;
   dean_coordinator?: number;
@@ -5,6 +7,8 @@ type EvaluationItem = {
   comment?: string;
   strengths?: string;
   areas_for_improvement?: string;
+  effectiveness?: string;
+  suggested_activities?: string;
   responses: Record<string, number>;
 };
 
@@ -300,6 +304,18 @@ export default {
         return ctx.unauthorized("User not authenticated.");
       }
 
+      type EvaluationItem = {
+        teacher?: number;
+        subject?: number;
+        dean_coordinator?: number;
+        responses: Record<string, number>;
+        comment?: string;
+        strengths?: string;
+        areas_for_improvement?: string;
+        effectiveness?: string;
+        suggested_activities?: string;
+      };
+
       const {
         evaluation_type,
         semester,
@@ -309,7 +325,16 @@ export default {
         days_time,
         department,
         evaluations,
-      } = ctx.request.body;
+      } = ctx.request.body as {
+        evaluation_type: number;
+        semester: string;
+        school_year: string;
+        date?: string;
+        course?: string;
+        days_time?: string;
+        department?: string;
+        evaluations: EvaluationItem[];
+      };
 
       if (
         !evaluation_type ||
@@ -368,14 +393,14 @@ export default {
           return ctx.badRequest("Dean/Coordinator is required.");
         }
 
-        console.log("duplicate check values:", {
-          userId,
-          teacher: item.teacher,
-          subject: item.subject,
-          semester,
-          school_year,
-          evaluation_type,
-        });
+        // console.log("duplicate check values:", {
+        //   userId,
+        //   teacher: item.teacher,
+        //   subject: item.subject,
+        //   semester,
+        //   school_year,
+        //   evaluation_type,
+        // });
 
         // Check for duplicate evaluation for student - faculty evaluation
         if (isStudentFaculty) {
@@ -477,7 +502,7 @@ export default {
           Number(id),
         );
 
-        const criteria = await strapi.entityService.findMany(
+        const criteria: any = await strapi.entityService.findMany(
           "api::evaluation-criteria.evaluation-criteria",
           {
             filters: {
@@ -501,7 +526,7 @@ export default {
           section: criterion.section?.title || "",
           sectionOrder: Number(criterion.section?.order || 0),
           criterionId: criterion.id,
-          order: criterion.order,
+          order: Number(criterion.order || 0),
           statement: criterion.statement,
           score: Number(item.responses[criterion.id] || 0),
         }));
@@ -523,17 +548,38 @@ export default {
           ? Number((total_score / enrichedResponses.length).toFixed(2))
           : 0;
 
+        const comment = item.comment || "";
+
+        let sentimentResult = {
+          sentiment: "Neutral",
+          score: 0,
+          summary: "",
+          suggestion: "",
+          keywords: [] as string[],
+        };
+
+        if (isStudentFaculty && comment.trim()) {
+        sentimentResult = await analyzeFeedbackSentiment(comment)
+      }
+
+       // const sentimentResult = await analyzeFeedbackSentiment(comment);
+
         const evaluationData: any = {
           batch: batch.id,
           evaluator_user: userId,
           responses: enrichedResponses,
           total_score,
           average_score,
-          comment: item.comment || "",
+          comment,
           strengths: item.strengths || "",
           areas_for_improvement: item.areas_for_improvement || "",
           effectiveness: item.effectiveness || "",
           suggested_activities: item.suggested_activities || "",
+          feedback_sentiment: sentimentResult.sentiment,
+          feedback_sentiment_score: sentimentResult.score,
+          feedback_sentiment_summary: sentimentResult.summary,
+          feedback_sentiment_suggestion: sentimentResult.suggestion,
+          feedback_keywords: sentimentResult.keywords,
         };
 
         if (isStudentFaculty) {
@@ -546,7 +592,7 @@ export default {
         }
 
         if (isDeanFaculty) {
-          evaluationData.teacher = item.teacher
+          evaluationData.teacher = item.teacher;
         }
 
         const evaluation = await strapi.entityService.create(

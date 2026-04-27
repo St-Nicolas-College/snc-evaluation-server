@@ -715,6 +715,11 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    feedback_keywords: Schema.Attribute.JSON;
+    feedback_sentiment: Schema.Attribute.String;
+    feedback_sentiment_score: Schema.Attribute.Decimal;
+    feedback_sentiment_suggestion: Schema.Attribute.Text;
+    feedback_sentiment_summary: Schema.Attribute.Text;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
