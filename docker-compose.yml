@@ -37,8 +37,8 @@ services:
       PAYMONGO_SECRET_KEY: ${PAYMONGO_SECRET_KEY}
     ports:
       - 1334:1334
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${STRAPI_PORT}/"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:${STRAPI_PORT}/"]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 3
