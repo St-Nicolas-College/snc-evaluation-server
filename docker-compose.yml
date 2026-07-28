@@ -34,3 +34,8 @@ services:
 
     ports:
       - "${STRAPI_PORT}:${STRAPI_PORT}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${STRAPI_PORT}/"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
