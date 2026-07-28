@@ -4,37 +4,38 @@ services:
       context: .
       dockerfile: Dockerfile
 
+    container_name: snc-evaluation-server
+
     restart: unless-stopped
 
     environment:
       NODE_ENV: production
 
-      # Strapi server
       HOST: 0.0.0.0
-      PORT: ${STRAPI_PORT:-1334}
+      PORT: ${STRAPI_PORT}
+
       STRAPI_BASEURL: ${STRAPI_BASEURL}
 
-      # Strapi security
       ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
       API_TOKEN_SALT: ${API_TOKEN_SALT}
       APP_KEYS: ${APP_KEYS}
       TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT}
       JWT_SECRET: ${JWT_SECRET}
 
-      # PostgreSQL
       DATABASE_CLIENT: postgres
       DATABASE_HOST: ${DATABASE_HOST}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_PORT: ${DATABASE_PORT}
       DATABASE_NAME: ${DATABASE_NAME}
       DATABASE_USERNAME: ${DATABASE_USERNAME}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      DATABASE_SSL: ${DATABASE_SSL:-false}
+      DATABASE_SSL: false
 
-      # OpenAI
       OPENAI_API_KEY: ${OPENAI_API_KEY}
 
     ports:
-      - "${STRAPI_PORT:-1334}:${STRAPI_PORT:-1334}"
-
+      - "${STRAPI_PORT}:${STRAPI_PORT}"
     healthcheck:
-      disable: true
+      test: ["CMD", "curl", "-f", "http://localhost:${STRAPI_PORT}/"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
