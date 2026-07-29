@@ -385,9 +385,9 @@ export default {
           return ctx.badRequest("Teacher is required for student evaluation.");
         }
 
-        if (isStudentFaculty && !item.subject) {
-          return ctx.badRequest("Subject is required for student evaluation.");
-        }
+        // if (isStudentFaculty && !item.subject) {
+        //   return ctx.badRequest("Subject is required for student evaluation.");
+        // }
 
         if (isFacultyDean && !item.dean_coordinator) {
           return ctx.badRequest("Dean/Coordinator is required.");
@@ -404,9 +404,9 @@ export default {
 
         // Check for duplicate evaluation for student - faculty evaluation
         if (isStudentFaculty) {
-          if (!item.teacher || !item.subject) {
+          if (!item.teacher) {
             return ctx.badRequest(
-              "Teacher and subject are required for student evaluation.",
+              "Teacher are required for student evaluation.",
             );
           }
 
@@ -419,9 +419,6 @@ export default {
                 },
                 teacher: {
                   id: item.teacher,
-                },
-                subject: {
-                  id: item.subject,
                 },
                 batch: {
                   semester,
