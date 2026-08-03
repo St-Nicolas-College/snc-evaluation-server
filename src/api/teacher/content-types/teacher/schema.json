@@ -52,6 +52,12 @@
       "relation": "manyToMany",
       "target": "api::subject.subject",
       "mappedBy": "teachers"
+    },
+    "faculty_portfolio": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::faculty-portfolio.faculty-portfolio",
+      "mappedBy": "faculty"
     }
   }
 }

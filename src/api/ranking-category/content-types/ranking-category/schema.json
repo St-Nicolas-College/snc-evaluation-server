@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ranking_categories",
+  "info": {
+    "singularName": "ranking-category",
+    "pluralName": "ranking-categories",
+    "displayName": "Ranking Category"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "sequence": {
+      "type": "integer",
+      "required": true,
+      "min": 1
+    },
+    "maximum_points": {
+      "type": "decimal",
+      "min": 0
+    },
+    "calculation_method": {
+      "type": "enumeration",
+      "enum": ["fixed", "accumulated", "capped", "calculated", "evaluation"],
+      "default": "accumulated",
+      "required": true
+    },
+    "requires_evidence": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "ranking_scheme": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ranking-scheme.ranking-scheme",
+      "inversedBy": "categories",
+      "required": true
+    },
+    "criteria": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ranking-criterion.ranking-criterion",
+      "mappedBy": "category"
+    }
+  }
+}

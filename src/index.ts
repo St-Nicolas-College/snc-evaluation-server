@@ -1,4 +1,5 @@
 // import type { Core } from '@strapi/strapi';
+import { seedRankingScheme2025 } from "./scripts/seed-ranking-scheme-2025";
 
 export default {
   /**
@@ -16,5 +17,9 @@ export default {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},
+  async bootstrap({ strapi }: { strapi: any }) {
+    if (process.env.SEED_RANKING_SCHEME_2025 === "true") {
+      await seedRankingScheme2025(strapi);
+    }
+  },
 };

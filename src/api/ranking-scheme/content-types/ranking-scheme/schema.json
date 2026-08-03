@@ -1,0 +1,80 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ranking_schemes",
+  "info": {
+    "singularName": "ranking-scheme",
+    "pluralName": "ranking-schemes",
+    "displayName": "Ranking Scheme"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "version": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "effective_date": {
+      "type": "date",
+      "required": true
+    },
+    "expiration_date": {
+      "type": "date"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "scheme_status": {
+      "type": "enumeration",
+      "enum": ["draft", "active", "archived"],
+      "default": "draft",
+      "required": true
+    },
+    "evaluation_max_points": {
+      "type": "decimal",
+      "default": 12,
+      "required": true,
+      "min": 0
+    },
+    "total_max_points": {
+      "type": "decimal",
+      "min": 0
+    },
+    "remarks": {
+      "type": "text"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ranking-category.ranking-category",
+      "mappedBy": "ranking_scheme"
+    },
+    "rank_bands": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::rank-band.rank-band",
+      "mappedBy": "ranking_scheme"
+    },
+    "ranking_cycles": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ranking-cycle.ranking-cycle",
+      "mappedBy": "ranking_scheme"
+    }
+  }
+}

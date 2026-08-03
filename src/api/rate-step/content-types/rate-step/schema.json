@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rate_steps",
+  "info": {
+    "singularName": "rate-step",
+    "pluralName": "rate-steps",
+    "displayName": "Rate Step"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "step_number": {
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 5
+    },
+    "rate": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "rank_band": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::rank-band.rank-band",
+      "inversedBy": "rate_steps",
+      "required": true
+    }
+  }
+}

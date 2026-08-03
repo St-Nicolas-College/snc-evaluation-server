@@ -1,0 +1,71 @@
+{
+  "kind": "collectionType",
+  "collectionName": "portfolio_verifications",
+  "info": {
+    "singularName": "portfolio-verification",
+    "pluralName": "portfolio-verifications",
+    "displayName": "Portfolio Verification"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "verification_status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "verified",
+        "rejected",
+        "needs_correction",
+        "expired"
+      ],
+      "required": true
+    },
+    "previous_status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "pending",
+        "for_verification",
+        "verified",
+        "rejected",
+        "needs_correction",
+        "expired"
+      ]
+    },
+    "new_status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "pending",
+        "for_verification",
+        "verified",
+        "rejected",
+        "needs_correction",
+        "expired"
+      ],
+      "required": true
+    },
+    "review_date": {
+      "type": "datetime",
+      "required": true
+    },
+    "remarks": {
+      "type": "text"
+    },
+    "portfolio_entry": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::portfolio-entry.portfolio-entry",
+      "inversedBy": "verification_history",
+      "required": true
+    },
+    "reviewer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    }
+  }
+}

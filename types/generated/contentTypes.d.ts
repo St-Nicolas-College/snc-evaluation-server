@@ -739,6 +739,65 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiFacultyPortfolioFacultyPortfolio
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'faculty_portfolios';
+  info: {
+    displayName: 'Faculty Portfolio';
+    pluralName: 'faculty-portfolios';
+    singularName: 'faculty-portfolio';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    completion_percentage: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    entries: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::portfolio-entry.portfolio-entry'
+    >;
+    faculty: Schema.Attribute.Relation<'oneToOne', 'api::teacher.teacher'> &
+      Schema.Attribute.Required;
+    last_verified_at: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::faculty-portfolio.faculty-portfolio'
+    > &
+      Schema.Attribute.Private;
+    portfolio_no: Schema.Attribute.UID & Schema.Attribute.Required;
+    portfolio_status: Schema.Attribute.Enumeration<
+      [
+        'draft',
+        'for_verification',
+        'partially_verified',
+        'verified',
+        'needs_correction',
+        'archived',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'draft'>;
+    publishedAt: Schema.Attribute.DateTime;
+    remarks: Schema.Attribute.Text;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiOverallFeedbackOverallFeedback
   extends Struct.CollectionTypeSchema {
   collectionName: 'overall_feedbacks';
@@ -776,6 +835,713 @@ export interface ApiOverallFeedbackOverallFeedback
     semester: Schema.Attribute.String;
     student: Schema.Attribute.Relation<'manyToOne', 'api::student.student'>;
     subject: Schema.Attribute.Relation<'manyToOne', 'api::subject.subject'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPortfolioEntryPortfolioEntry
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'portfolio_entries';
+  info: {
+    displayName: 'Portfolio Entry';
+    pluralName: 'portfolio-entries';
+    singularName: 'portfolio-entry';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date_earned: Schema.Attribute.Date;
+    description: Schema.Attribute.Text;
+    end_date: Schema.Attribute.Date;
+    entry_type: Schema.Attribute.Enumeration<
+      [
+        'educational_attainment',
+        'eligibility',
+        'license',
+        'certification',
+        'training',
+        'seminar',
+        'resource_speaker',
+        'research',
+        'publication',
+        'award',
+        'professional_experience',
+        'institutional_service',
+        'community_service',
+        'other',
+      ]
+    > &
+      Schema.Attribute.Required;
+    evidence: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::portfolio-evidence.portfolio-evidence'
+    >;
+    expiration_date: Schema.Attribute.Date;
+    faculty_portfolio: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::faculty-portfolio.faculty-portfolio'
+    > &
+      Schema.Attribute.Required;
+    institution: Schema.Attribute.String;
+    is_current: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    is_locked: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    issuer: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::portfolio-entry.portfolio-entry'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    quantity: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<1>;
+    reference_number: Schema.Attribute.String;
+    remarks: Schema.Attribute.Text;
+    start_date: Schema.Attribute.Date;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    verification_history: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::portfolio-verification.portfolio-verification'
+    >;
+    verification_status: Schema.Attribute.Enumeration<
+      [
+        'draft',
+        'pending',
+        'for_verification',
+        'verified',
+        'rejected',
+        'needs_correction',
+        'expired',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'draft'>;
+    verified_at: Schema.Attribute.DateTime;
+    verified_by: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    years_count: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+  };
+}
+
+export interface ApiPortfolioEvidencePortfolioEvidence
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'portfolio_evidences';
+  info: {
+    displayName: 'Portfolio Evidence';
+    pluralName: 'portfolio-evidences';
+    singularName: 'portfolio-evidence';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    document_number: Schema.Attribute.String;
+    evidence_type: Schema.Attribute.Enumeration<
+      [
+        'diploma',
+        'transcript',
+        'license',
+        'certificate',
+        'publication',
+        'award_document',
+        'employment_record',
+        'service_record',
+        'community_service_record',
+        'other',
+      ]
+    > &
+      Schema.Attribute.Required;
+    expiration_date: Schema.Attribute.Date;
+    file: Schema.Attribute.Media<'files' | 'images'> &
+      Schema.Attribute.Required;
+    issue_date: Schema.Attribute.Date;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::portfolio-evidence.portfolio-evidence'
+    > &
+      Schema.Attribute.Private;
+    portfolio_entry: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::portfolio-entry.portfolio-entry'
+    > &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    remarks: Schema.Attribute.Text;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    verification_status: Schema.Attribute.Enumeration<
+      ['pending', 'verified', 'rejected', 'needs_correction', 'expired']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    verified_at: Schema.Attribute.DateTime;
+    verified_by: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiPortfolioVerificationPortfolioVerification
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'portfolio_verifications';
+  info: {
+    displayName: 'Portfolio Verification';
+    pluralName: 'portfolio-verifications';
+    singularName: 'portfolio-verification';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::portfolio-verification.portfolio-verification'
+    > &
+      Schema.Attribute.Private;
+    new_status: Schema.Attribute.Enumeration<
+      [
+        'draft',
+        'pending',
+        'for_verification',
+        'verified',
+        'rejected',
+        'needs_correction',
+        'expired',
+      ]
+    > &
+      Schema.Attribute.Required;
+    portfolio_entry: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::portfolio-entry.portfolio-entry'
+    > &
+      Schema.Attribute.Required;
+    previous_status: Schema.Attribute.Enumeration<
+      [
+        'draft',
+        'pending',
+        'for_verification',
+        'verified',
+        'rejected',
+        'needs_correction',
+        'expired',
+      ]
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    remarks: Schema.Attribute.Text;
+    review_date: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    reviewer: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    verification_status: Schema.Attribute.Enumeration<
+      ['pending', 'verified', 'rejected', 'needs_correction', 'expired']
+    > &
+      Schema.Attribute.Required;
+  };
+}
+
+export interface ApiRankBandRankBand extends Struct.CollectionTypeSchema {
+  collectionName: 'rank_bands';
+  info: {
+    displayName: 'Rank Band';
+    pluralName: 'rank-bands';
+    singularName: 'rank-band';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    educational_requirement: Schema.Attribute.String;
+    is_active: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::rank-band.rank-band'
+    > &
+      Schema.Attribute.Private;
+    maximum_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    maximum_rate: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    minimum_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    minimum_rate: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    publishedAt: Schema.Attribute.DateTime;
+    rank_level: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+    rank_name: Schema.Attribute.Enumeration<
+      ['instructor', 'assistant_professor', 'associate_professor', 'professor']
+    > &
+      Schema.Attribute.Required;
+    ranking_scheme: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::ranking-scheme.ranking-scheme'
+    > &
+      Schema.Attribute.Required;
+    rate_steps: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::rate-step.rate-step'
+    >;
+    sequence: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiRankingCategoryRankingCategory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ranking_categories';
+  info: {
+    displayName: 'Ranking Category';
+    pluralName: 'ranking-categories';
+    singularName: 'ranking-category';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    calculation_method: Schema.Attribute.Enumeration<
+      ['fixed', 'accumulated', 'capped', 'calculated', 'evaluation']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'accumulated'>;
+    code: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    criteria: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ranking-criterion.ranking-criterion'
+    >;
+    description: Schema.Attribute.Text;
+    is_active: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ranking-category.ranking-category'
+    > &
+      Schema.Attribute.Private;
+    maximum_points: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    ranking_scheme: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::ranking-scheme.ranking-scheme'
+    > &
+      Schema.Attribute.Required;
+    requires_evidence: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    sequence: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiRankingCriterionRankingCriterion
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ranking_criteria';
+  info: {
+    displayName: 'Ranking Criterion';
+    pluralName: 'ranking-criteria';
+    singularName: 'ranking-criterion';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    calculation_type: Schema.Attribute.Enumeration<
+      [
+        'fixed',
+        'per_item',
+        'range',
+        'years_of_service',
+        'evaluation_conversion',
+        'manual',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'fixed'>;
+    category: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::ranking-category.ranking-category'
+    > &
+      Schema.Attribute.Required;
+    code: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    evidence_type: Schema.Attribute.Enumeration<
+      [
+        'diploma',
+        'transcript',
+        'license',
+        'certificate',
+        'publication',
+        'award',
+        'employment_record',
+        'community_service_record',
+        'evaluation_result',
+        'other',
+      ]
+    >;
+    is_active: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    is_repeatable: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ranking-criterion.ranking-criterion'
+    > &
+      Schema.Attribute.Private;
+    maximum_points: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    maximum_quantity: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    maximum_value: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    minimum_quantity: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    minimum_value: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    points_per_item: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    publishedAt: Schema.Attribute.DateTime;
+    requires_evidence: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    sequence: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiRankingCycleRankingCycle
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ranking_cycles';
+  info: {
+    displayName: 'Ranking Cycle';
+    pluralName: 'ranking-cycles';
+    singularName: 'ranking-cycle';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    code: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    cycle_status: Schema.Attribute.Enumeration<
+      [
+        'draft',
+        'open',
+        'for_validation',
+        'for_committee_review',
+        'approved',
+        'published',
+        'archived',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'draft'>;
+    effective_date: Schema.Attribute.Date;
+    end_date: Schema.Attribute.Date & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ranking-cycle.ranking-cycle'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    ranking_scheme: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::ranking-scheme.ranking-scheme'
+    > &
+      Schema.Attribute.Required;
+    remarks: Schema.Attribute.Text;
+    school_year: Schema.Attribute.String & Schema.Attribute.Required;
+    start_date: Schema.Attribute.Date & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiRankingSchemeRankingScheme
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ranking_schemes';
+  info: {
+    displayName: 'Ranking Scheme';
+    pluralName: 'ranking-schemes';
+    singularName: 'ranking-scheme';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    categories: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ranking-category.ranking-category'
+    >;
+    code: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    effective_date: Schema.Attribute.Date & Schema.Attribute.Required;
+    evaluation_max_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<12>;
+    expiration_date: Schema.Attribute.Date;
+    is_active: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ranking-scheme.ranking-scheme'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    rank_bands: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::rank-band.rank-band'
+    >;
+    ranking_cycles: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ranking-cycle.ranking-cycle'
+    >;
+    remarks: Schema.Attribute.Text;
+    scheme_status: Schema.Attribute.Enumeration<
+      ['draft', 'active', 'archived']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'draft'>;
+    total_max_points: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    version: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface ApiRateStepRateStep extends Struct.CollectionTypeSchema {
+  collectionName: 'rate_steps';
+  info: {
+    displayName: 'Rate Step';
+    pluralName: 'rate-steps';
+    singularName: 'rate-step';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.String;
+    is_active: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::rate-step.rate-step'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    rank_band: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::rank-band.rank-band'
+    > &
+      Schema.Attribute.Required;
+    rate: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    step_number: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+          min: 1;
+        },
+        number
+      >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -993,6 +1759,10 @@ export interface ApiTeacherTeacher extends Struct.CollectionTypeSchema {
       'api::department.department'
     >;
     employee_no: Schema.Attribute.String;
+    faculty_portfolio: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::faculty-portfolio.faculty-portfolio'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1589,7 +2359,17 @@ declare module '@strapi/strapi' {
       'api::evaluation-section.evaluation-section': ApiEvaluationSectionEvaluationSection;
       'api::evaluation-type.evaluation-type': ApiEvaluationTypeEvaluationType;
       'api::evaluation.evaluation': ApiEvaluationEvaluation;
+      'api::faculty-portfolio.faculty-portfolio': ApiFacultyPortfolioFacultyPortfolio;
       'api::overall-feedback.overall-feedback': ApiOverallFeedbackOverallFeedback;
+      'api::portfolio-entry.portfolio-entry': ApiPortfolioEntryPortfolioEntry;
+      'api::portfolio-evidence.portfolio-evidence': ApiPortfolioEvidencePortfolioEvidence;
+      'api::portfolio-verification.portfolio-verification': ApiPortfolioVerificationPortfolioVerification;
+      'api::rank-band.rank-band': ApiRankBandRankBand;
+      'api::ranking-category.ranking-category': ApiRankingCategoryRankingCategory;
+      'api::ranking-criterion.ranking-criterion': ApiRankingCriterionRankingCriterion;
+      'api::ranking-cycle.ranking-cycle': ApiRankingCycleRankingCycle;
+      'api::ranking-scheme.ranking-scheme': ApiRankingSchemeRankingScheme;
+      'api::rate-step.rate-step': ApiRateStepRateStep;
       'api::refresh-token.refresh-token': ApiRefreshTokenRefreshToken;
       'api::scale-option.scale-option': ApiScaleOptionScaleOption;
       'api::school-year.school-year': ApiSchoolYearSchoolYear;

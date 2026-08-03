@@ -1,0 +1,58 @@
+{
+  "kind": "collectionType",
+  "collectionName": "faculty_portfolios",
+  "info": {
+    "singularName": "faculty-portfolio",
+    "pluralName": "faculty-portfolios",
+    "displayName": "Faculty Portfolio"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "portfolio_no": {
+      "type": "uid",
+      "required": true
+    },
+    "portfolio_status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "for_verification",
+        "partially_verified",
+        "verified",
+        "needs_correction",
+        "archived"
+      ],
+      "default": "draft",
+      "required": true
+    },
+    "completion_percentage": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "required": true
+    },
+    "last_verified_at": {
+      "type": "datetime"
+    },
+    "remarks": {
+      "type": "text"
+    },
+    "faculty": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::teacher.teacher",
+      "inversedBy": "faculty_portfolio",
+      "required": true
+    },
+    "entries": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::portfolio-entry.portfolio-entry",
+      "mappedBy": "faculty_portfolio"
+    }
+  }
+}

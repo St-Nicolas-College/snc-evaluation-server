@@ -1,0 +1,63 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ranking_cycles",
+  "info": {
+    "singularName": "ranking-cycle",
+    "pluralName": "ranking-cycles",
+    "displayName": "Ranking Cycle"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "school_year": {
+      "type": "string",
+      "required": true
+    },
+    "start_date": {
+      "type": "date",
+      "required": true
+    },
+    "end_date": {
+      "type": "date",
+      "required": true
+    },
+    "effective_date": {
+      "type": "date"
+    },
+    "cycle_status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "open",
+        "for_validation",
+        "for_committee_review",
+        "approved",
+        "published",
+        "archived"
+      ],
+      "default": "draft",
+      "required": true
+    },
+    "remarks": {
+      "type": "text"
+    },
+    "ranking_scheme": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ranking-scheme.ranking-scheme",
+      "inversedBy": "ranking_cycles",
+      "required": true
+    }
+  }
+}

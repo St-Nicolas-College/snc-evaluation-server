@@ -1,0 +1,76 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rank_bands",
+  "info": {
+    "singularName": "rank-band",
+    "pluralName": "rank-bands",
+    "displayName": "Rank Band"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+     "rank_name": {
+      "type": "enumeration",
+      "enum": [
+        "instructor",
+        "assistant_professor",
+        "associate_professor",
+        "professor"
+      ],
+      "required": true
+    },
+    "rank_level": {
+      "type": "integer",
+      "required": true,
+      "min": 1
+    },
+    "educational_requirement": {
+      "type": "string"
+    },
+    "minimum_points": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "maximum_points": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "minimum_rate": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "maximum_rate": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "sequence": {
+      "type": "integer",
+      "required": true,
+      "min": 1
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "ranking_scheme": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ranking-scheme.ranking-scheme",
+      "inversedBy": "rank_bands",
+      "required": true
+    },
+    "rate_steps": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::rate-step.rate-step",
+      "mappedBy": "rank_band"
+    }
+  }
+}
