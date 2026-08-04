@@ -69,59 +69,20 @@
       "type": "decimal",
       "min": 0
     },
-    "verification_status": {
-      "type": "enumeration",
-      "enum": [
-        "draft",
-        "pending",
-        "for_verification",
-        "verified",
-        "rejected",
-        "needs_correction",
-        "expired"
-      ],
-      "default": "draft",
-      "required": true
+    "remarks": {
+      "type": "text"
     },
     "is_current": {
       "type": "boolean",
       "default": true,
       "required": true
     },
-    "is_locked": {
-      "type": "boolean",
-      "default": false,
-      "required": true
-    },
-    "verified_at": {
-      "type": "datetime"
-    },
-    "remarks": {
-      "type": "text"
-    },
-    "faculty_portfolio": {
+    "teacher": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "api::faculty-portfolio.faculty-portfolio",
-      "inversedBy": "entries",
+      "target": "api::teacher.teacher",
+      "inversedBy": "portfolio_entries",
       "required": true
-    },
-    "verified_by": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "plugin::users-permissions.user"
-    },
-    "evidence": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::portfolio-evidence.portfolio-evidence",
-      "mappedBy": "portfolio_entry"
-    },
-    "verification_history": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::portfolio-verification.portfolio-verification",
-      "mappedBy": "portfolio_entry"
     }
   }
 }

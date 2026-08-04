@@ -53,11 +53,11 @@
       "target": "api::subject.subject",
       "mappedBy": "teachers"
     },
-    "faculty_portfolio": {
+    "portfolio_entries": {
       "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::faculty-portfolio.faculty-portfolio",
-      "mappedBy": "faculty"
+      "relation": "oneToMany",
+      "target": "api::portfolio-entry.portfolio-entry",
+      "mappedBy": "teacher"
     }
   }
 }

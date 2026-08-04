@@ -739,65 +739,6 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiFacultyPortfolioFacultyPortfolio
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'faculty_portfolios';
-  info: {
-    displayName: 'Faculty Portfolio';
-    pluralName: 'faculty-portfolios';
-    singularName: 'faculty-portfolio';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    completion_percentage: Schema.Attribute.Decimal &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 100;
-          min: 0;
-        },
-        number
-      > &
-      Schema.Attribute.DefaultTo<0>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    entries: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::portfolio-entry.portfolio-entry'
-    >;
-    faculty: Schema.Attribute.Relation<'oneToOne', 'api::teacher.teacher'> &
-      Schema.Attribute.Required;
-    last_verified_at: Schema.Attribute.DateTime;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::faculty-portfolio.faculty-portfolio'
-    > &
-      Schema.Attribute.Private;
-    portfolio_no: Schema.Attribute.UID & Schema.Attribute.Required;
-    portfolio_status: Schema.Attribute.Enumeration<
-      [
-        'draft',
-        'for_verification',
-        'partially_verified',
-        'verified',
-        'needs_correction',
-        'archived',
-      ]
-    > &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'draft'>;
-    publishedAt: Schema.Attribute.DateTime;
-    remarks: Schema.Attribute.Text;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiOverallFeedbackOverallFeedback
   extends Struct.CollectionTypeSchema {
   collectionName: 'overall_feedbacks';
@@ -878,23 +819,11 @@ export interface ApiPortfolioEntryPortfolioEntry
       ]
     > &
       Schema.Attribute.Required;
-    evidence: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::portfolio-evidence.portfolio-evidence'
-    >;
     expiration_date: Schema.Attribute.Date;
-    faculty_portfolio: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::faculty-portfolio.faculty-portfolio'
-    > &
-      Schema.Attribute.Required;
     institution: Schema.Attribute.String;
     is_current: Schema.Attribute.Boolean &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<true>;
-    is_locked: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<false>;
     issuer: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -915,32 +844,12 @@ export interface ApiPortfolioEntryPortfolioEntry
     reference_number: Schema.Attribute.String;
     remarks: Schema.Attribute.Text;
     start_date: Schema.Attribute.Date;
+    teacher: Schema.Attribute.Relation<'manyToOne', 'api::teacher.teacher'> &
+      Schema.Attribute.Required;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    verification_history: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::portfolio-verification.portfolio-verification'
-    >;
-    verification_status: Schema.Attribute.Enumeration<
-      [
-        'draft',
-        'pending',
-        'for_verification',
-        'verified',
-        'rejected',
-        'needs_correction',
-        'expired',
-      ]
-    > &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'draft'>;
-    verified_at: Schema.Attribute.DateTime;
-    verified_by: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
     years_count: Schema.Attribute.Decimal &
       Schema.Attribute.SetMinMax<
         {
@@ -948,138 +857,6 @@ export interface ApiPortfolioEntryPortfolioEntry
         },
         number
       >;
-  };
-}
-
-export interface ApiPortfolioEvidencePortfolioEvidence
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'portfolio_evidences';
-  info: {
-    displayName: 'Portfolio Evidence';
-    pluralName: 'portfolio-evidences';
-    singularName: 'portfolio-evidence';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    document_number: Schema.Attribute.String;
-    evidence_type: Schema.Attribute.Enumeration<
-      [
-        'diploma',
-        'transcript',
-        'license',
-        'certificate',
-        'publication',
-        'award_document',
-        'employment_record',
-        'service_record',
-        'community_service_record',
-        'other',
-      ]
-    > &
-      Schema.Attribute.Required;
-    expiration_date: Schema.Attribute.Date;
-    file: Schema.Attribute.Media<'files' | 'images'> &
-      Schema.Attribute.Required;
-    issue_date: Schema.Attribute.Date;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::portfolio-evidence.portfolio-evidence'
-    > &
-      Schema.Attribute.Private;
-    portfolio_entry: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::portfolio-entry.portfolio-entry'
-    > &
-      Schema.Attribute.Required;
-    publishedAt: Schema.Attribute.DateTime;
-    remarks: Schema.Attribute.Text;
-    title: Schema.Attribute.String & Schema.Attribute.Required;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    verification_status: Schema.Attribute.Enumeration<
-      ['pending', 'verified', 'rejected', 'needs_correction', 'expired']
-    > &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'pending'>;
-    verified_at: Schema.Attribute.DateTime;
-    verified_by: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
-  };
-}
-
-export interface ApiPortfolioVerificationPortfolioVerification
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'portfolio_verifications';
-  info: {
-    displayName: 'Portfolio Verification';
-    pluralName: 'portfolio-verifications';
-    singularName: 'portfolio-verification';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::portfolio-verification.portfolio-verification'
-    > &
-      Schema.Attribute.Private;
-    new_status: Schema.Attribute.Enumeration<
-      [
-        'draft',
-        'pending',
-        'for_verification',
-        'verified',
-        'rejected',
-        'needs_correction',
-        'expired',
-      ]
-    > &
-      Schema.Attribute.Required;
-    portfolio_entry: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::portfolio-entry.portfolio-entry'
-    > &
-      Schema.Attribute.Required;
-    previous_status: Schema.Attribute.Enumeration<
-      [
-        'draft',
-        'pending',
-        'for_verification',
-        'verified',
-        'rejected',
-        'needs_correction',
-        'expired',
-      ]
-    >;
-    publishedAt: Schema.Attribute.DateTime;
-    remarks: Schema.Attribute.Text;
-    review_date: Schema.Attribute.DateTime & Schema.Attribute.Required;
-    reviewer: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    verification_status: Schema.Attribute.Enumeration<
-      ['pending', 'verified', 'rejected', 'needs_correction', 'expired']
-    > &
-      Schema.Attribute.Required;
   };
 }
 
@@ -1759,10 +1536,6 @@ export interface ApiTeacherTeacher extends Struct.CollectionTypeSchema {
       'api::department.department'
     >;
     employee_no: Schema.Attribute.String;
-    faculty_portfolio: Schema.Attribute.Relation<
-      'oneToOne',
-      'api::faculty-portfolio.faculty-portfolio'
-    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1770,6 +1543,10 @@ export interface ApiTeacherTeacher extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
+    portfolio_entries: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::portfolio-entry.portfolio-entry'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     students: Schema.Attribute.Relation<'manyToMany', 'api::student.student'>;
     teacher_evaluations: Schema.Attribute.Relation<
@@ -2359,11 +2136,8 @@ declare module '@strapi/strapi' {
       'api::evaluation-section.evaluation-section': ApiEvaluationSectionEvaluationSection;
       'api::evaluation-type.evaluation-type': ApiEvaluationTypeEvaluationType;
       'api::evaluation.evaluation': ApiEvaluationEvaluation;
-      'api::faculty-portfolio.faculty-portfolio': ApiFacultyPortfolioFacultyPortfolio;
       'api::overall-feedback.overall-feedback': ApiOverallFeedbackOverallFeedback;
       'api::portfolio-entry.portfolio-entry': ApiPortfolioEntryPortfolioEntry;
-      'api::portfolio-evidence.portfolio-evidence': ApiPortfolioEvidencePortfolioEvidence;
-      'api::portfolio-verification.portfolio-verification': ApiPortfolioVerificationPortfolioVerification;
       'api::rank-band.rank-band': ApiRankBandRankBand;
       'api::ranking-category.ranking-category': ApiRankingCategoryRankingCategory;
       'api::ranking-criterion.ranking-criterion': ApiRankingCriterionRankingCriterion;
