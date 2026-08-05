@@ -11,7 +11,7 @@
   },
   "pluginOptions": {},
   "attributes": {
-     "rank_name": {
+    "rank_name": {
       "type": "enumeration",
       "enum": [
         "instructor",
@@ -70,6 +70,18 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::rate-step.rate-step",
+      "mappedBy": "rank_band"
+    },
+    "faculty_rankings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::faculty-ranking.faculty-ranking",
+      "mappedBy": "rank_band"
+    },
+    "salary_rate_record": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::salary-rate.salary-rate",
       "mappedBy": "rank_band"
     }
   }

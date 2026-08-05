@@ -1,0 +1,163 @@
+{
+  "kind": "collectionType",
+  "collectionName": "faculty_rankings",
+  "info": {
+    "singularName": "faculty-ranking",
+    "pluralName": "faculty-rankings",
+    "displayName": "Faculty Ranking"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "ranking_no": {
+      "type": "uid",
+      "targetField": "ranking_label",
+      "required": true
+    },
+    "ranking_label": {
+      "type": "string",
+      "required": true
+    },
+    "school_year": {
+      "type": "string",
+      "required": true
+    },
+    "semester": {
+      "type": "enumeration",
+      "enum": ["first_semester", "second_semester", "summer", "annual"],
+      "default": "annual",
+      "required": true
+    },
+    "educational_qualification_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "eligibility_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "training_seminar_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "research_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "awards_recognition_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "professional_experience_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "loyalty_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "evaluation_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "csr_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "total_portfolio_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "total_ranking_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "rank_name": {
+      "type": "string"
+    },
+    "rank_code": {
+      "type": "string"
+    },
+    "salary_rate": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0
+    },
+    "computation_status": {
+      "type": "enumeration",
+      "enum": ["draft", "computed", "finalized", "archived"],
+      "default": "draft",
+      "required": true
+    },
+    "computed_at": {
+      "type": "datetime"
+    },
+    "finalized_at": {
+      "type": "datetime"
+    },
+    "remarks": {
+      "type": "text"
+    },
+    "teacher": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::teacher.teacher",
+      "inversedBy": "faculty_rankings",
+      "required": true
+    },
+    "ranking_scheme": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ranking-scheme.ranking-scheme",
+      "inversedBy": "faculty_rankings",
+      "required": true
+    },
+    "rank_band": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::rank-band.rank-band",
+      "inversedBy": "faculty_rankings"
+    },
+    "salary_rate_record": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::salary-rate.salary-rate",
+      "inversedBy": "faculty_rankings"
+    },
+    "breakdowns": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::faculty-ranking-breakdown.faculty-ranking-breakdown",
+      "mappedBy": "faculty_ranking"
+    },
+    "computed_by": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

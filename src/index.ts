@@ -1,5 +1,7 @@
-// import type { Core } from '@strapi/strapi';
-import { seedRankingScheme2025 } from "./scripts/seed-ranking-scheme-2025";
+import type { Core } from '@strapi/strapi';
+import {
+  seedFacultyMaxRates,
+} from "./scripts/seed-faculty-max-rates";
 
 export default {
   /**
@@ -17,9 +19,22 @@ export default {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  async bootstrap({ strapi }: { strapi: any }) {
-    if (process.env.SEED_RANKING_SCHEME_2025 === "true") {
-      await seedRankingScheme2025(strapi);
+  async bootstrap({ strapi }: { strapi: Core.Strapi; }) {
+     const rankingSchemeDocumentId =
+      process.env
+        .RANKING_SCHEME_DOCUMENT_ID;
+
+    if (!rankingSchemeDocumentId) {
+      strapi.log.warn(
+        "[Faculty MAX Rate Seed] RANKING_SCHEME_DOCUMENT_ID is not configured.",
+      );
+
+      return;
     }
+
+    await seedFacultyMaxRates(
+      strapi,
+      rankingSchemeDocumentId,
+    );
   },
 };

@@ -1,0 +1,129 @@
+{
+  "kind": "collectionType",
+  "collectionName": "faculty_ranking_breakdowns",
+  "info": {
+    "singularName": "faculty-ranking-breakdown",
+    "pluralName": "faculty-ranking-breakdowns",
+    "displayName": "Faculty Ranking Breakdown"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "category_code": {
+      "type": "enumeration",
+      "enum": [
+        "educational_qualifications",
+        "eligibility",
+        "training_seminars",
+        "research",
+        "awards_recognition",
+        "professional_experience",
+        "loyalty",
+        "evaluation",
+        "corporate_social_responsibility"
+      ],
+      "required": true
+    },
+    "category_name": {
+      "type": "string",
+      "required": true
+    },
+    "criterion_code": {
+      "type": "string"
+    },
+    "criterion_name": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "enumeration",
+      "enum": [
+        "portfolio_entry",
+        "evaluation_result",
+        "service_record",
+        "manual_adjustment",
+        "system_computation"
+      ],
+      "required": true
+    },
+    "source_document_id": {
+      "type": "string"
+    },
+    "source_title": {
+      "type": "string"
+    },
+    "source_description": {
+      "type": "text"
+    },
+    "raw_value": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0
+    },
+    "quantity": {
+      "type": "decimal",
+      "default": 1,
+      "min": 0
+    },
+    "base_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "multiplier": {
+      "type": "decimal",
+      "default": 1,
+      "min": 0,
+      "required": true
+    },
+    "computed_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "maximum_points": {
+      "type": "decimal",
+      "min": 0
+    },
+    "awarded_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "calculation_notes": {
+      "type": "text"
+    },
+    "is_included": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "faculty_ranking": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::faculty-ranking.faculty-ranking",
+      "inversedBy": "breakdowns",
+      "required": true
+    },
+    "ranking_category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ranking-category.ranking-category"
+    },
+    "ranking_criterion": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ranking-criterion.ranking-criterion"
+    },
+    "portfolio_entry": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::portfolio-entry.portfolio-entry",
+      "inversedBy": "ranking_breakdowns"
+    }
+  }
+}

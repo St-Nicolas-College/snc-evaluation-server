@@ -1,0 +1,76 @@
+{
+  "kind": "collectionType",
+  "collectionName": "salary_rates",
+  "info": {
+    "singularName": "salary-rate",
+    "pluralName": "salary-rates",
+    "displayName": "Salary Rate"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "rate_code": {
+      "type": "uid",
+      "targetField": "rate_name",
+      "required": true
+    },
+    "rate_name": {
+      "type": "string",
+      "required": true
+    },
+    "point_value": {
+      "type": "decimal",
+      "min": 0
+    },
+    "is_below_minimum": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "below_points": {
+      "type": "decimal",
+      "min": 0
+    },
+    "max_rate": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "effective_date": {
+      "type": "date"
+    },
+    "end_date": {
+      "type": "date"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "sort_order": {
+      "type": "integer",
+      "default": 1,
+      "min": 1,
+      "required": true
+    },
+    "remarks": {
+      "type": "text"
+    },
+    "ranking_scheme": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ranking-scheme.ranking-scheme",
+      "inversedBy": "salary_rates",
+      "required": true
+    },
+    "faculty_rankings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::faculty-ranking.faculty-ranking",
+      "mappedBy": "salary_rate_record"
+    }
+  }
+}

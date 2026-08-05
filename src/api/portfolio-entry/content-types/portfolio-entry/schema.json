@@ -59,10 +59,10 @@
     "expiration_date": {
       "type": "date"
     },
-    "quantity": {
-      "type": "integer",
-      "default": 1,
-      "min": 1,
+    "points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
       "required": true
     },
     "years_count": {
@@ -83,6 +83,12 @@
       "target": "api::teacher.teacher",
       "inversedBy": "portfolio_entries",
       "required": true
+    },
+    "ranking_breakdowns": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::faculty-ranking-breakdown.faculty-ranking-breakdown",
+      "mappedBy": "portfolio_entry"
     }
   }
 }

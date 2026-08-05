@@ -58,6 +58,12 @@
       "relation": "oneToMany",
       "target": "api::portfolio-entry.portfolio-entry",
       "mappedBy": "teacher"
+    },
+    "faculty_rankings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::faculty-ranking.faculty-ranking",
+      "mappedBy": "teacher"
     }
   }
 }
