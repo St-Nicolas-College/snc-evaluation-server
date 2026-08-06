@@ -25,9 +25,7 @@
       "required": true
     },
     "semester": {
-      "type": "enumeration",
-      "enum": ["first_semester", "second_semester", "summer", "annual"],
-      "default": "annual",
+      "type": "string",
       "required": true
     },
     "educational_qualification_points": {
@@ -66,6 +64,12 @@
       "min": 0,
       "required": true
     },
+    "educational_qualification_total_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
     "loyalty_points": {
       "type": "decimal",
       "default": 0,
@@ -73,6 +77,24 @@
       "required": true
     },
     "evaluation_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "student_evaluation_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "immediate_superior_evaluation_points": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0,
+      "required": true
+    },
+    "hr_evaluation_points": {
       "type": "decimal",
       "default": 0,
       "min": 0,
@@ -104,12 +126,29 @@
     },
     "salary_rate": {
       "type": "decimal",
-      "default": 0,
       "min": 0
+    },
+    "rate_assignment_status": {
+      "type": "enumeration",
+      "enum": [
+        "matched",
+        "minimum_rate",
+        "not_configured"
+      ],
+      "default": "not_configured",
+      "required": true
+    },
+    "rate_assignment_message": {
+      "type": "string"
     },
     "computation_status": {
       "type": "enumeration",
-      "enum": ["draft", "computed", "finalized", "archived"],
+      "enum": [
+        "draft",
+        "computed",
+        "finalized",
+        "archived"
+      ],
       "default": "draft",
       "required": true
     },

@@ -933,6 +933,15 @@ export interface ApiFacultyRankingFacultyRanking
         number
       > &
       Schema.Attribute.DefaultTo<0>;
+    educational_qualification_total_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
     eligibility_points: Schema.Attribute.Decimal &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMax<
@@ -952,6 +961,24 @@ export interface ApiFacultyRankingFacultyRanking
       > &
       Schema.Attribute.DefaultTo<0>;
     finalized_at: Schema.Attribute.DateTime;
+    hr_evaluation_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    immediate_superior_evaluation_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -991,6 +1018,12 @@ export interface ApiFacultyRankingFacultyRanking
       'api::ranking-scheme.ranking-scheme'
     > &
       Schema.Attribute.Required;
+    rate_assignment_message: Schema.Attribute.String;
+    rate_assignment_status: Schema.Attribute.Enumeration<
+      ['matched', 'minimum_rate', 'not_configured']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'not_configured'>;
     remarks: Schema.Attribute.Text;
     research_points: Schema.Attribute.Decimal &
       Schema.Attribute.Required &
@@ -1007,18 +1040,22 @@ export interface ApiFacultyRankingFacultyRanking
           min: 0;
         },
         number
-      > &
-      Schema.Attribute.DefaultTo<0>;
+      >;
     salary_rate_record: Schema.Attribute.Relation<
       'manyToOne',
       'api::salary-rate.salary-rate'
     >;
     school_year: Schema.Attribute.String & Schema.Attribute.Required;
-    semester: Schema.Attribute.Enumeration<
-      ['first_semester', 'second_semester', 'summer', 'annual']
-    > &
+    semester: Schema.Attribute.String & Schema.Attribute.Required;
+    student_evaluation_points: Schema.Attribute.Decimal &
       Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'annual'>;
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
     teacher: Schema.Attribute.Relation<'manyToOne', 'api::teacher.teacher'> &
       Schema.Attribute.Required;
     total_portfolio_points: Schema.Attribute.Decimal &
@@ -1117,20 +1154,15 @@ export interface ApiPortfolioEntryPortfolioEntry
     end_date: Schema.Attribute.Date;
     entry_type: Schema.Attribute.Enumeration<
       [
-        'educational_attainment',
+        'educational_qualifications',
         'eligibility',
-        'license',
-        'certification',
-        'training',
-        'seminar',
-        'resource_speaker',
+        'training_seminars',
         'research',
-        'publication',
-        'award',
+        'awards_recognition',
         'professional_experience',
-        'institutional_service',
-        'community_service',
-        'other',
+        'loyalty',
+        'evaluation',
+        'corporate_social_responsibility',
       ]
     > &
       Schema.Attribute.Required;
@@ -1162,6 +1194,8 @@ export interface ApiPortfolioEntryPortfolioEntry
     >;
     reference_number: Schema.Attribute.String;
     remarks: Schema.Attribute.Text;
+    school_year: Schema.Attribute.String;
+    semester: Schema.Attribute.String & Schema.Attribute.Required;
     start_date: Schema.Attribute.Date;
     teacher: Schema.Attribute.Relation<'manyToOne', 'api::teacher.teacher'> &
       Schema.Attribute.Required;
@@ -1559,12 +1593,30 @@ export interface ApiRankingSchemeRankingScheme
         },
         number
       > &
-      Schema.Attribute.DefaultTo<12>;
+      Schema.Attribute.DefaultTo<13>;
     expiration_date: Schema.Attribute.Date;
     faculty_rankings: Schema.Attribute.Relation<
       'oneToMany',
       'api::faculty-ranking.faculty-ranking'
     >;
+    hr_evaluation_max_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<4>;
+    immediate_superior_max_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<4>;
     is_active: Schema.Attribute.Boolean &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<false>;
@@ -1594,6 +1646,15 @@ export interface ApiRankingSchemeRankingScheme
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'draft'>;
+    student_evaluation_max_points: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<5>;
     total_max_points: Schema.Attribute.Decimal &
       Schema.Attribute.SetMinMax<
         {

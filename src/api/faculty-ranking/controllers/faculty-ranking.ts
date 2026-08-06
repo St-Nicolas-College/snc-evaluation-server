@@ -68,7 +68,7 @@ export default factories.createCoreController(
       const semester =
         String(
           requestData.semester ||
-            "annual",
+            "Annual",
         ).trim();
 
       if (!teacherDocumentId) {

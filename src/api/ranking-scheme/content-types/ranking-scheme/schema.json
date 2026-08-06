@@ -51,9 +51,27 @@
     },
     "evaluation_max_points": {
       "type": "decimal",
-      "default": 12,
+      "default": 13,
       "required": true,
       "min": 0
+    },
+    "student_evaluation_max_points": {
+      "type": "decimal",
+      "default": 5,
+      "min": 0,
+      "required": true
+    },
+    "immediate_superior_max_points": {
+      "type": "decimal",
+      "default": 4,
+      "min": 0,
+      "required": true
+    },
+    "hr_evaluation_max_points": {
+      "type": "decimal",
+      "default": 4,
+      "min": 0,
+      "required": true
     },
     "total_max_points": {
       "type": "decimal",

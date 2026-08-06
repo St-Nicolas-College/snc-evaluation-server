@@ -14,20 +14,15 @@
     "entry_type": {
       "type": "enumeration",
       "enum": [
-        "educational_attainment",
+        "educational_qualifications",
         "eligibility",
-        "license",
-        "certification",
-        "training",
-        "seminar",
-        "resource_speaker",
+        "training_seminars",
         "research",
-        "publication",
-        "award",
+        "awards_recognition",
         "professional_experience",
-        "institutional_service",
-        "community_service",
-        "other"
+        "loyalty",
+        "evaluation",
+        "corporate_social_responsibility"
       ],
       "required": true
     },
@@ -75,6 +70,13 @@
     "is_current": {
       "type": "boolean",
       "default": true,
+      "required": true
+    },
+    "school_year": {
+      "type": "string"
+    },
+     "semester": {
+      "type": "string",
       "required": true
     },
     "teacher": {
