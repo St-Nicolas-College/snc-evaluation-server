@@ -437,6 +437,14 @@ export async function computeFacultyRanking({
      PREPARE RANKING DATA
   ======================================================== */
 
+  const resolvedRankName = rankBand
+    ? formatRankName(rankBand.rank_name, rankBand.rank_level)
+    : null;
+
+  const resolvedRankCode = rankBand
+    ? createRankCode(rankBand.rank_name, rankBand.rank_level)
+    : null;
+
   const rankingData: any = {
     ranking_no: rankingNo,
 
@@ -482,9 +490,9 @@ export async function computeFacultyRanking({
 
     total_ranking_points: totalRankingPoints,
 
-    rank_name: rankBand?.rank_name || rankBand?.name || null,
+    rank_name: resolvedRankName,
 
-    rank_code: rankBand?.rank_code || rankBand?.code || null,
+    rank_code: resolvedRankCode,
 
     salary_rate: rateResult.maxRate,
 
@@ -987,9 +995,7 @@ function resolveManualFourPointRating(points: number) {
   return "No Rating";
 }
 
-function normalizePointsForRankBand(
-  points: number,
-) {
+function normalizePointsForRankBand(points: number) {
   if (!Number.isFinite(points)) {
     return 0;
   }
@@ -1009,4 +1015,62 @@ function normalizePointsForRankBand(
    * round to the nearest whole point.
    */
   return Math.round(rounded);
+}
+
+function formatRankName(
+  rankName: unknown,
+  rankLevel: unknown,
+) {
+  const formattedName = String(
+    rankName || "",
+  )
+    .trim()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase(),
+    );
+
+  const level = Number(rankLevel);
+
+  if (
+    !formattedName ||
+    !Number.isFinite(level)
+  ) {
+    return null;
+  }
+
+  return `${formattedName} ${level}`;
+}
+
+function createRankCode(
+  rankName: unknown,
+  rankLevel: unknown,
+) {
+  const normalizedName = String(
+    rankName || "",
+  )
+    .trim()
+    .toLowerCase();
+
+  const level = Number(rankLevel);
+
+  if (!Number.isFinite(level)) {
+    return null;
+  }
+
+  const prefixMap: Record<string, string> = {
+    instructor: "INS",
+    assistant_professor: "AP",
+    associate_professor: "ASP",
+    professor: "PROF",
+  };
+
+  const prefix =
+    prefixMap[normalizedName];
+
+  if (!prefix) {
+    return null;
+  }
+
+  return `${prefix}-${level}`;
 }

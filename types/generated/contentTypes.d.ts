@@ -1195,7 +1195,7 @@ export interface ApiPortfolioEntryPortfolioEntry
     reference_number: Schema.Attribute.String;
     remarks: Schema.Attribute.Text;
     school_year: Schema.Attribute.String;
-    semester: Schema.Attribute.String & Schema.Attribute.Required;
+    semester: Schema.Attribute.String;
     start_date: Schema.Attribute.Date;
     teacher: Schema.Attribute.Relation<'manyToOne', 'api::teacher.teacher'> &
       Schema.Attribute.Required;
