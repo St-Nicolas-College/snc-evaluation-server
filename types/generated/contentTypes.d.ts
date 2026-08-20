@@ -678,6 +678,9 @@ export interface ApiEvaluationTypeEvaluationType
     min_score: Schema.Attribute.Integer;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    response_type: Schema.Attribute.Enumeration<['rating', 'text']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'rating'>;
     scale_labels: Schema.Attribute.JSON;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

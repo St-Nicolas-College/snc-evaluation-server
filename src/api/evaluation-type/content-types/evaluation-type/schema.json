@@ -18,6 +18,12 @@
       "type": "uid",
       "targetField": "name"
     },
+    "response_type": {
+      "type": "enumeration",
+      "enum": ["rating", "text"],
+      "default": "rating",
+      "required": true
+    },
     "max_score": {
       "type": "integer"
     },

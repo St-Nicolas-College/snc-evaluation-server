@@ -357,7 +357,7 @@ export default {
 
       const isStudentFaculty = evalType.code === "student-faculty";
       const isFacultyDean = evalType.code === "faculty-dean-coordinator";
-      const isDeanFaculty = evalType?.code === "dean-to-faculty";
+      const isDeanFaculty = evalType?.code === "dean-faculty";
 
       const batch = await strapi.entityService.create(
         "api::evaluation-batch.evaluation-batch",
@@ -391,6 +391,12 @@ export default {
 
         if (isFacultyDean && !item.dean_coordinator) {
           return ctx.badRequest("Dean/Coordinator is required.");
+        }
+
+        if (isDeanFaculty && !item.teacher) {
+          return ctx.badRequest(
+            "Faculty member is required for dean evaluation.",
+          );
         }
 
         // console.log("duplicate check values:", {
@@ -556,10 +562,10 @@ export default {
         };
 
         if (isStudentFaculty && comment.trim()) {
-        sentimentResult = await analyzeFeedbackSentiment(comment)
-      }
+          sentimentResult = await analyzeFeedbackSentiment(comment);
+        }
 
-       // const sentimentResult = await analyzeFeedbackSentiment(comment);
+        // const sentimentResult = await analyzeFeedbackSentiment(comment);
 
         const evaluationData: any = {
           batch: batch.id,
