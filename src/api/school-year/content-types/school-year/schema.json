@@ -20,10 +20,7 @@
     "sy_status": {
       "type": "enumeration",
       "default": "Inactive",
-      "enum": [
-        "Active",
-        "Inactive"
-      ]
+      "enum": ["Active", "Inactive"]
     },
     "active_sy": {
       "type": "boolean",
@@ -33,6 +30,12 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::overall-feedback.overall-feedback",
+      "mappedBy": "school_year_record"
+    },
+    "student_teacher_assignments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::student-teacher-assignment.student-teacher-assignment",
       "mappedBy": "school_year_record"
     }
   }

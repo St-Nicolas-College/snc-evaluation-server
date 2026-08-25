@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "student_teacher_assignments",
+  "info": {
+    "singularName": "student-teacher-assignment",
+    "pluralName": "student-teacher-assignments",
+    "displayName": "Student Teacher Assignment"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "student": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::student.student",
+      "inversedBy": "teacher_assignments",
+      "required": true
+    },
+    "teacher": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::teacher.teacher",
+      "inversedBy": "student_assignments",
+      "required": true
+    },
+    "school_year_record": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::school-year.school-year",
+      "inversedBy": "student_teacher_assignments",
+      "required": true
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "remarks": {
+      "type": "text"
+    }
+  }
+}

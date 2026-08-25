@@ -39,6 +39,12 @@
       "target": "api::teacher.teacher",
       "inversedBy": "students"
     },
+    "teacher_assignments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::student-teacher-assignment.student-teacher-assignment",
+      "mappedBy": "student"
+    },
     "course": {
       "type": "relation",
       "relation": "manyToOne",

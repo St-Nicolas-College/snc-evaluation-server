@@ -1,96 +1,240 @@
 export default {
   async registerStudent(ctx) {
-    try {
-      const {
-        student_id,
-        name,
-        course,
-        year_level,
-        section,
-        username,
-        email,
-        password,
-      } = ctx.request.body;
+    let createdUserId: number | null = null;
 
-      if (!student_id || !name || !username || !email || !password) {
-        return ctx.badRequest("Missing required fields.");
+    try {
+      const { student_id, name, course, year_level, section, email, password } =
+        ctx.request.body;
+
+      /*
+       * -----------------------------------------------------
+       * NORMALIZE INPUT
+       * -----------------------------------------------------
+       */
+
+      const normalizedStudentId = String(student_id || "").trim();
+      const normalizedName = String(name || "").trim();
+      const normalizedEmail = String(email || "")
+        .trim()
+        .toLowerCase();
+      const normalizedYearLevel = String(year_level || "").trim();
+      const normalizedSection = String(section || "").trim();
+
+      /*
+       * Student ID will always be the login username.
+       * Do not accept a user-defined username from the browser.
+       */
+      const username = normalizedStudentId;
+
+      /*
+       * -----------------------------------------------------
+       * REQUIRED FIELD VALIDATION
+       * -----------------------------------------------------
+       */
+
+      if (
+        !normalizedStudentId ||
+        !normalizedName ||
+        !course ||
+        !normalizedYearLevel ||
+        !normalizedSection ||
+        !normalizedEmail ||
+        !password
+      ) {
+        return ctx.badRequest("Complete all required registration fields.");
       }
+
+      /*
+       * -----------------------------------------------------
+       * BASIC EMAIL VALIDATION
+       * -----------------------------------------------------
+       */
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailPattern.test(normalizedEmail)) {
+        return ctx.badRequest("Enter a valid email address.");
+      }
+
+      /*
+       * -----------------------------------------------------
+       * PASSWORD VALIDATION
+       * -----------------------------------------------------
+       */
+
+      if (String(password).length < 6) {
+        return ctx.badRequest("Password must contain at least 6 characters.");
+      }
+
+      /*
+       * -----------------------------------------------------
+       * CHECK STUDENT ID
+       * -----------------------------------------------------
+       */
 
       const existingStudent = await strapi.db
         .query("api::student.student")
         .findOne({
-          where: { student_id },
+          where: {
+            student_id: normalizedStudentId,
+          },
         });
 
       if (existingStudent) {
-        return ctx.badRequest("Student ID already exists.");
+        return ctx.badRequest("Student ID is already registered.");
       }
+
+      /*
+       * -----------------------------------------------------
+       * CHECK USERNAME / EMAIL
+       * -----------------------------------------------------
+       */
 
       const existingUser = await strapi.db
         .query("plugin::users-permissions.user")
         .findOne({
           where: {
-            $or: [{ username }, { email }],
+            $or: [
+              {
+                username,
+              },
+              {
+                email: normalizedEmail,
+              },
+            ],
           },
         });
 
       if (existingUser) {
-        return ctx.badRequest("Username or email already exists.");
+        if (existingUser.username === username) {
+          return ctx.badRequest(
+            "Student ID is already being used as an account username.",
+          );
+        }
+
+        return ctx.badRequest("Email address is already registered.");
       }
+
+      /*
+       * -----------------------------------------------------
+       * VERIFY COURSE
+       * -----------------------------------------------------
+       */
+
+      const selectedCourse = await strapi.entityService.findOne(
+        "api::course.course",
+        course,
+      );
+
+      if (!selectedCourse) {
+        return ctx.badRequest("Selected course is invalid.");
+      }
+
+      /*
+       * -----------------------------------------------------
+       * GET STUDENT ROLE
+       * -----------------------------------------------------
+       */
 
       const role = await strapi.db
         .query("plugin::users-permissions.role")
         .findOne({
-          where: { name: "Student" },
+          where: {
+            name: "Student",
+          },
         });
 
       if (!role) {
-        return ctx.badRequest("Student role not found.");
+        return ctx.internalServerError("Student role is not configured.");
       }
+
+      /*
+       * -----------------------------------------------------
+       * CREATE USERS & PERMISSIONS ACCOUNT
+       * -----------------------------------------------------
+       */
 
       const user = await strapi.plugins["users-permissions"].services.user.add({
         username,
-        email,
+        email: normalizedEmail,
         password,
         confirmed: true,
         blocked: false,
         role: role.id,
       });
 
-      //   const student = await strapi.entityService.create('api::student.student', {
-      //     data: {
-      //       student_id,
-      //       name,
-      //       course,
-      //       year_level,
-      //       section,
-      //       user: user.id
-      //     },
-      //     populate: {
-      //       user: true
-      //     }
-      //   })
+      createdUserId = user.id;
+
+      /*
+       * -----------------------------------------------------
+       * CREATE STUDENT PROFILE
+       * -----------------------------------------------------
+       */
+
       const student = await strapi.documents("api::student.student").create({
         data: {
-          student_id,
-          name,
-          email,
+          student_id: normalizedStudentId,
+          name: normalizedName,
+          email: normalizedEmail,
           course,
-          year_level,
-          section,
+          year_level: normalizedYearLevel,
+          section: normalizedSection,
           user: user.id,
         },
-        populate: ["user"],
+        populate: {
+          user: true,
+          course: true,
+        },
       });
+
+      /*
+       * -----------------------------------------------------
+       * SUCCESS
+       * -----------------------------------------------------
+       */
 
       return ctx.send({
         message: "Student account created successfully.",
-        data: student,
+
+        data: {
+          id: student.id,
+          documentId: student.documentId,
+          student_id: student.student_id,
+          name: student.name,
+          email: student.email,
+          year_level: student.year_level,
+          section: student.section,
+          course: student.course,
+          username: user.username,
+        },
       });
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("REGISTER STUDENT ERROR:", error);
+
+      /*
+       * -----------------------------------------------------
+       * CLEAN UP ORPHAN USER
+       * -----------------------------------------------------
+       *
+       * If the Users & Permissions account was created but
+       * Student profile creation failed, remove the user so
+       * we don't leave an orphan login account.
+       */
+
+      if (createdUserId) {
+        try {
+          await strapi.db.query("plugin::users-permissions.user").delete({
+            where: {
+              id: createdUserId,
+            },
+          });
+        } catch (cleanupError) {
+          console.error("REGISTER STUDENT CLEANUP ERROR:", cleanupError);
+        }
+      }
+
       return ctx.internalServerError(
-        "Something went wrong while registering student.",
+        error?.message || "Something went wrong while registering the student.",
       );
     }
   },

@@ -1895,8 +1895,53 @@ export interface ApiSchoolYearSchoolYear extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     school_year: Schema.Attribute.String;
     semester: Schema.Attribute.String;
+    student_teacher_assignments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::student-teacher-assignment.student-teacher-assignment'
+    >;
     sy_status: Schema.Attribute.Enumeration<['Active', 'Inactive']> &
       Schema.Attribute.DefaultTo<'Inactive'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiStudentTeacherAssignmentStudentTeacherAssignment
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'student_teacher_assignments';
+  info: {
+    displayName: 'Student Teacher Assignment';
+    pluralName: 'student-teacher-assignments';
+    singularName: 'student-teacher-assignment';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    is_active: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::student-teacher-assignment.student-teacher-assignment'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    remarks: Schema.Attribute.Text;
+    school_year_record: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::school-year.school-year'
+    > &
+      Schema.Attribute.Required;
+    student: Schema.Attribute.Relation<'manyToOne', 'api::student.student'> &
+      Schema.Attribute.Required;
+    teacher: Schema.Attribute.Relation<'manyToOne', 'api::teacher.teacher'> &
+      Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1937,6 +1982,10 @@ export interface ApiStudentStudent extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     section: Schema.Attribute.String;
     student_id: Schema.Attribute.String & Schema.Attribute.Unique;
+    teacher_assignments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::student-teacher-assignment.student-teacher-assignment'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2031,6 +2080,10 @@ export interface ApiTeacherTeacher extends Struct.CollectionTypeSchema {
       'api::portfolio-entry.portfolio-entry'
     >;
     publishedAt: Schema.Attribute.DateTime;
+    student_assignments: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::student-teacher-assignment.student-teacher-assignment'
+    >;
     students: Schema.Attribute.Relation<'manyToMany', 'api::student.student'>;
     teacher_evaluations: Schema.Attribute.Relation<
       'oneToMany',
@@ -2633,6 +2686,7 @@ declare module '@strapi/strapi' {
       'api::salary-rate.salary-rate': ApiSalaryRateSalaryRate;
       'api::scale-option.scale-option': ApiScaleOptionScaleOption;
       'api::school-year.school-year': ApiSchoolYearSchoolYear;
+      'api::student-teacher-assignment.student-teacher-assignment': ApiStudentTeacherAssignmentStudentTeacherAssignment;
       'api::student.student': ApiStudentStudent;
       'api::subject.subject': ApiSubjectSubject;
       'api::teacher.teacher': ApiTeacherTeacher;

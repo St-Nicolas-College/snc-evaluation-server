@@ -64,6 +64,12 @@
       "relation": "oneToMany",
       "target": "api::faculty-ranking.faculty-ranking",
       "mappedBy": "teacher"
+    },
+    "student_assignments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::student-teacher-assignment.student-teacher-assignment",
+      "mappedBy": "teacher"
     }
   }
 }
