@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "faculty_class_assignments",
+  "info": {
+    "singularName": "faculty-class-assignment",
+    "pluralName": "faculty-class-assignments",
+    "displayName": "Faculty Class Assignment"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "teacher": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::teacher.teacher"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course"
+    },
+    "year_level": {
+      "type": "string"
+    },
+    "section": {
+      "type": "string"
+    },
+    "school_year_record": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::school-year.school-year"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

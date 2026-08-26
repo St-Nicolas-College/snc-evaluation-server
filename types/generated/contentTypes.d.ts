@@ -742,6 +742,43 @@ export interface ApiEvaluationEvaluation extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiFacultyClassAssignmentFacultyClassAssignment
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'faculty_class_assignments';
+  info: {
+    displayName: 'Faculty Class Assignment';
+    pluralName: 'faculty-class-assignments';
+    singularName: 'faculty-class-assignment';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    course: Schema.Attribute.Relation<'manyToOne', 'api::course.course'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    is_active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::faculty-class-assignment.faculty-class-assignment'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    school_year_record: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::school-year.school-year'
+    >;
+    section: Schema.Attribute.String;
+    teacher: Schema.Attribute.Relation<'manyToOne', 'api::teacher.teacher'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    year_level: Schema.Attribute.String;
+  };
+}
+
 export interface ApiFacultyRankingBreakdownFacultyRankingBreakdown
   extends Struct.CollectionTypeSchema {
   collectionName: 'faculty_ranking_breakdowns';
@@ -2672,6 +2709,7 @@ declare module '@strapi/strapi' {
       'api::evaluation-section.evaluation-section': ApiEvaluationSectionEvaluationSection;
       'api::evaluation-type.evaluation-type': ApiEvaluationTypeEvaluationType;
       'api::evaluation.evaluation': ApiEvaluationEvaluation;
+      'api::faculty-class-assignment.faculty-class-assignment': ApiFacultyClassAssignmentFacultyClassAssignment;
       'api::faculty-ranking-breakdown.faculty-ranking-breakdown': ApiFacultyRankingBreakdownFacultyRankingBreakdown;
       'api::faculty-ranking.faculty-ranking': ApiFacultyRankingFacultyRanking;
       'api::overall-feedback.overall-feedback': ApiOverallFeedbackOverallFeedback;
