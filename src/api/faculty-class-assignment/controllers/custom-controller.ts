@@ -337,4 +337,131 @@ export default {
       );
     }
   },
+
+  async getMyClassTeachers(ctx) {
+    try {
+      const userId = ctx.state.user?.id;
+
+      if (!userId) {
+        return ctx.unauthorized("You must be logged in.");
+      }
+
+      /*
+       * -----------------------------------------------------
+       * GET LOGGED-IN STUDENT
+       * -----------------------------------------------------
+       */
+
+      const student = await strapi.db.query("api::student.student").findOne({
+        where: {
+          user: {
+            id: userId,
+          },
+        },
+
+        populate: {
+          course: true,
+          user: true,
+        },
+      });
+
+      if (!student) {
+        return ctx.notFound("Student profile not found.");
+      }
+
+      if (!student.course?.id || !student.year_level || !student.section) {
+        return ctx.badRequest(
+          "Your student profile is missing course, year level, or section information.",
+        );
+      }
+
+      /*
+       * -----------------------------------------------------
+       * GET ACTIVE ACADEMIC PERIOD
+       * -----------------------------------------------------
+       */
+
+      const activeSchoolYear = await this.getActiveSchoolYear();
+
+      if (!activeSchoolYear) {
+        return ctx.badRequest("There is currently no active academic period.");
+      }
+
+      /*
+       * -----------------------------------------------------
+       * FIND CLASS FACULTY ASSIGNMENTS
+       * -----------------------------------------------------
+       */
+
+      const assignments = await strapi.db
+        .query("api::faculty-class-assignment.faculty-class-assignment")
+        .findMany({
+          where: {
+            course: {
+              id: student.course.id,
+            },
+            year_level: student.year_level,
+            section: student.section,
+            school_year_record: {
+              id: activeSchoolYear.id,
+            },
+            is_active: true,
+          },
+          populate: {
+            teacher: {
+              populate: {
+                department: true,
+              },
+            },
+            course: true,
+            school_year_record: true,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        });
+
+      /*
+       * -----------------------------------------------------
+       * RETURN
+       * -----------------------------------------------------
+       */
+
+      return ctx.send({
+        data: assignments,
+
+        student: {
+          id: student.id,
+          documentId: student.documentId,
+          student_id: student.student_id,
+          name: student.name,
+          year_level: student.year_level,
+          section: student.section,
+          course: student.course,
+        },
+
+        class: {
+          course: student.course,
+          year_level: student.year_level,
+          section: student.section,
+          label: `${student.course?.code || student.course?.name}-${student.section}`,
+        },
+
+        active_period: {
+          id: activeSchoolYear.id,
+          documentId: activeSchoolYear.documentId,
+          semester: activeSchoolYear.semester,
+          school_year: activeSchoolYear.school_year,
+        },
+
+        count: assignments.length,
+      });
+    } catch (error: any) {
+      console.error("GET MY CLASS TEACHERS ERROR:", error);
+
+      return ctx.internalServerError(
+        error?.message || "Unable to load your class teachers.",
+      );
+    }
+  },
 };

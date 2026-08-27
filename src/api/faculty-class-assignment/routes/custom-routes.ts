@@ -13,5 +13,11 @@ export default {
       handler: "custom-controller.saveClassAssignments",
       config: {},
     },
+    {
+      method: "GET",
+      path: "/faculty-class-assignments/my-class-teachers",
+      handler: "custom-controller.getMyClassTeachers",
+      config: {},
+    },
   ],
 };
