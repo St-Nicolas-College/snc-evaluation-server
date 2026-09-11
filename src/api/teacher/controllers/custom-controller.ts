@@ -23,6 +23,10 @@ export default {
         return ctx.badRequest("Missing required fields.");
       }
 
+      if (password.length < 8) {
+        return ctx.badRequest("Password must contain at least 8 characters.");
+      }
+
       const existingTeacher = await strapi.db
         .query("api::teacher.teacher")
         .findOne({
@@ -97,7 +101,7 @@ export default {
     }
   },
 
-  // UPDATE TEACHER WITH USER
+  // UPDATE TEACHER WITH LINKED USER
   async updateTeacherWithUser(ctx) {
     try {
       const { id } = ctx.params;
@@ -111,7 +115,17 @@ export default {
         assigned_subjects,
       } = ctx.request.body;
 
-      const teacher = await strapi.entityService.findOne(
+      if (!id) {
+        return ctx.badRequest("Teacher ID is required.");
+      }
+
+      /*
+       * -----------------------------------------------------
+       * 1. FIND TEACHER + LINKED USER
+       * -----------------------------------------------------
+       */
+
+      const teacher: any = await strapi.entityService.findOne(
         "api::teacher.teacher",
         id,
         {
@@ -128,75 +142,187 @@ export default {
         return ctx.notFound("Teacher not found.");
       }
 
-      // @ts-ignore
-      const teacherUser = teacher.user;
-      if (!teacherUser) {
+      const teacherUser: any = teacher.user;
+
+      if (!teacherUser?.id) {
         return ctx.badRequest("Linked user account not found.");
       }
 
-      if (employee_no) {
+      /*
+       * -----------------------------------------------------
+       * 2. VALIDATE EMPLOYEE NUMBER
+       * -----------------------------------------------------
+       */
+
+      if (employee_no !== undefined) {
+        const normalizedEmployeeNo = String(employee_no).trim();
+
+        if (!normalizedEmployeeNo) {
+          return ctx.badRequest("Employee number is required.");
+        }
+
         const duplicateTeacher = await strapi.db
           .query("api::teacher.teacher")
           .findOne({
-            where: { employee_no },
+            where: {
+              employee_no: normalizedEmployeeNo,
+            },
           });
 
         if (duplicateTeacher && duplicateTeacher.id !== teacher.id) {
           return ctx.badRequest("Employee number already exists.");
         }
-      }
 
-      if (email) {
-        const duplicateUser = await strapi.db
+        /*
+         * Employee No. is also the username.
+         * Check whether another user already owns it.
+         */
+        const duplicateUsername = await strapi.db
           .query("plugin::users-permissions.user")
           .findOne({
-            where: { email },
+            where: {
+              username: normalizedEmployeeNo,
+            },
           });
 
-        if (duplicateUser && duplicateUser.id !== teacherUser.id) {
+        if (duplicateUsername && duplicateUsername.id !== teacherUser.id) {
+          return ctx.badRequest(
+            "Employee number is already used as another account username.",
+          );
+        }
+      }
+
+      /*
+       * -----------------------------------------------------
+       * 3. VALIDATE EMAIL
+       * -----------------------------------------------------
+       */
+
+      if (email !== undefined) {
+        const normalizedEmail = String(email).trim().toLowerCase();
+
+        if (!normalizedEmail) {
+          return ctx.badRequest("Email is required.");
+        }
+
+        const duplicateEmail = await strapi.db
+          .query("plugin::users-permissions.user")
+          .findOne({
+            where: {
+              email: normalizedEmail,
+            },
+          });
+
+        if (duplicateEmail && duplicateEmail.id !== teacherUser.id) {
           return ctx.badRequest("Email already exists.");
         }
       }
 
-      const updateData: any = {};
+      /*
+       * -----------------------------------------------------
+       * 4. VALIDATE ROLE
+       * -----------------------------------------------------
+       */
 
-      if (employee_no !== undefined) updateData.employee_no = employee_no;
-      if (name !== undefined) updateData.name = name;
-      if (department !== undefined) updateData.department = department;
+      let role: any = null;
 
-      if (assigned_subjects !== undefined) {
-        updateData.assigned_subjects = {
-          set: assigned_subjects,
-        };
-      }
-
-      await strapi.entityService.update("api::teacher.teacher", id, {
-        data: updateData,
-      });
-
-      const userUpdateData: any = {};
-      if (email) userUpdateData.email = email;
-
-      if (roleName) {
-        const role = await strapi.db
-          .query("plugin::users-permissions.role")
-          .findOne({
-            where: { name: roleName },
-          });
+      if (roleName !== undefined) {
+        role = await strapi.db.query("plugin::users-permissions.role").findOne({
+          where: {
+            name: roleName,
+          },
+        });
 
         if (!role) {
           return ctx.badRequest(`Role "${roleName}" not found.`);
         }
+      }
 
+      /*
+       * -----------------------------------------------------
+       * 5. PREPARE TEACHER UPDATE
+       * -----------------------------------------------------
+       */
+
+      const teacherUpdateData: any = {};
+
+      if (employee_no !== undefined) {
+        teacherUpdateData.employee_no = String(employee_no).trim();
+      }
+
+      if (name !== undefined) {
+        teacherUpdateData.name = String(name).trim();
+      }
+
+      if (department !== undefined) {
+        teacherUpdateData.department = department;
+      }
+
+      if (assigned_subjects !== undefined) {
+        teacherUpdateData.assigned_subjects = {
+          set: assigned_subjects,
+        };
+      }
+
+      /*
+       * -----------------------------------------------------
+       * 6. PREPARE LINKED USER UPDATE
+       * -----------------------------------------------------
+       */
+
+      const userUpdateData: any = {};
+
+      /*
+       * Keep:
+       *
+       * Teacher.employee_no
+       *       =
+       * User.username
+       */
+      if (employee_no !== undefined) {
+        userUpdateData.username = String(employee_no).trim();
+      }
+
+      if (email !== undefined) {
+        userUpdateData.email = String(email).trim().toLowerCase();
+      }
+
+      if (role) {
         userUpdateData.role = role.id;
       }
 
+      /*
+       * -----------------------------------------------------
+       * 7. UPDATE TEACHER
+       * -----------------------------------------------------
+       */
+
+      if (Object.keys(teacherUpdateData).length > 0) {
+        await strapi.entityService.update("api::teacher.teacher", id, {
+          data: teacherUpdateData,
+        });
+      }
+
+      /*
+       * -----------------------------------------------------
+       * 8. UPDATE LINKED USER
+       * -----------------------------------------------------
+       */
+
       if (Object.keys(userUpdateData).length > 0) {
         await strapi.db.query("plugin::users-permissions.user").update({
-          where: { id: teacherUser.id },
+          where: {
+            id: teacherUser.id,
+          },
           data: userUpdateData,
         });
       }
+
+      /*
+       * -----------------------------------------------------
+       * 9. RETURN UPDATED TEACHER
+       * -----------------------------------------------------
+       */
 
       const updatedTeacher = await strapi.entityService.findOne(
         "api::teacher.teacher",
@@ -206,19 +332,22 @@ export default {
             user: {
               populate: ["role"],
             },
+            department: true,
             assigned_subjects: true,
           },
         },
       );
 
       return ctx.send({
-        message: "Teacher updated successfully.",
+        message: "Teacher and linked user account updated successfully.",
         data: updatedTeacher,
       });
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("UPDATE TEACHER WITH USER ERROR:", error);
+
       return ctx.internalServerError(
-        "Something went wrong while updating teacher.",
+        error?.message ||
+          "Something went wrong while updating the teacher account.",
       );
     }
   },

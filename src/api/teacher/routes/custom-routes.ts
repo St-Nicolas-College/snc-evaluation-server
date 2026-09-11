@@ -4,25 +4,19 @@ export default {
       method: 'POST',
       path: '/teachers/register',
       handler: 'custom-controller.registerTeacher',
-      config: {
-        auth: false
-      }
+      config: {}
     },
     {
       method: 'PUT',
       path: '/teachers/update-with-user/:id',
       handler: 'custom-controller.updateTeacherWithUser',
-      config: {
-        auth: false
-      }
+      config: {}
     },
     {
       method: 'DELETE',
       path: '/teachers/delete-with-user/:id',
       handler: 'custom-controller.deleteTeacherWithUser',
-      config: {
-        auth: false
-      }
+      config: {}
     }
   ]
 }

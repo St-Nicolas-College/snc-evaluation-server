@@ -381,4 +381,216 @@ export default {
       return ctx.internalServerError("Error deleting student.");
     }
   },
+
+  async changeMyPassword(ctx) {
+    try {
+      const userId = ctx.state.user?.id;
+
+      if (!userId) {
+        return ctx.unauthorized("You must be logged in.");
+      }
+
+      const { current_password, new_password } = ctx.request.body as {
+        current_password?: string;
+        new_password?: string;
+      };
+
+      if (!current_password || !new_password) {
+        return ctx.badRequest(
+          "Current password and new password are required.",
+        );
+      }
+
+      if (new_password.length < 8) {
+        return ctx.badRequest(
+          "New password must contain at least 6 characters.",
+        );
+      }
+
+      /*
+       * =====================================================
+       * GET CURRENT USER
+       * =====================================================
+       */
+
+      const currentUser = await strapi.db
+        .query("plugin::users-permissions.user")
+        .findOne({
+          where: {
+            id: userId,
+          },
+          populate: {
+            role: true,
+          },
+        });
+
+      if (!currentUser) {
+        return ctx.notFound("User account not found.");
+      }
+
+      /*
+       * =====================================================
+       * VERIFY CURRENT PASSWORD
+       * =====================================================
+       */
+
+      const validPassword = await strapi
+        .plugin("users-permissions")
+        .service("user")
+        .validatePassword(current_password, currentUser.password);
+
+      if (!validPassword) {
+        return ctx.badRequest("Current password is incorrect.");
+      }
+
+      /*
+       * =====================================================
+       * PREVENT SAME PASSWORD
+       * =====================================================
+       */
+
+      const samePassword = await strapi
+        .plugin("users-permissions")
+        .service("user")
+        .validatePassword(new_password, currentUser.password);
+
+      if (samePassword) {
+        return ctx.badRequest(
+          "New password must be different from your current password.",
+        );
+      }
+
+      /*
+       * =====================================================
+       * UPDATE PASSWORD
+       * =====================================================
+       *
+       * Use the Users & Permissions service so the new password
+       * is properly hashed before being stored.
+       */
+
+      await strapi.plugin("users-permissions").service("user").edit(userId, {
+        password: new_password,
+      });
+
+      return ctx.send({
+        message: "Password changed successfully.",
+      });
+    } catch (error: any) {
+      console.error("CHANGE STUDENT PASSWORD ERROR:", error);
+
+      return ctx.internalServerError(
+        error?.message || "Unable to change your password.",
+      );
+    }
+  },
+
+  async updateMySettings(ctx) {
+    try {
+      const userId = ctx.state.user?.id;
+
+      if (!userId) {
+        return ctx.unauthorized("You must be logged in.");
+      }
+
+      const { email } = ctx.request.body as {
+        email?: string;
+      };
+
+      if (!email || !email.trim()) {
+        return ctx.badRequest("Email address is required.");
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+
+      /*
+       * Get Student linked to logged-in user
+       */
+      const student = await strapi.db.query("api::student.student").findOne({
+        where: {
+          user: {
+            id: userId,
+          },
+        },
+
+        populate: {
+          user: true,
+          course: true,
+        },
+      });
+
+      if (!student) {
+        return ctx.notFound("Student profile not found.");
+      }
+
+      const linkedUser: any = student.user;
+
+      if (!linkedUser?.id) {
+        return ctx.badRequest("Linked user account not found.");
+      }
+
+      /*
+       * Check whether email is already used
+       */
+      const duplicateUser = await strapi.db
+        .query("plugin::users-permissions.user")
+        .findOne({
+          where: {
+            email: normalizedEmail,
+          },
+        });
+
+      if (duplicateUser && duplicateUser.id !== linkedUser.id) {
+        return ctx.badRequest("Email address is already in use.");
+      }
+
+      /*
+       * Update Student record
+       */
+      await strapi.entityService.update("api::student.student", student.id, {
+        data: {
+          email: normalizedEmail,
+        },
+      });
+
+      /*
+       * Update Users & Permissions account
+       */
+      await strapi.db.query("plugin::users-permissions.user").update({
+        where: {
+          id: linkedUser.id,
+        },
+
+        data: {
+          email: normalizedEmail,
+        },
+      });
+
+      /*
+       * Return refreshed profile
+       */
+      const updatedStudent = await strapi.entityService.findOne(
+        "api::student.student",
+        student.id,
+        {
+          populate: {
+            user: true,
+            course: true,
+          },
+        },
+      );
+
+      return ctx.send({
+        message: "Account information updated successfully.",
+
+        data: updatedStudent,
+      });
+    } catch (error: any) {
+      console.error("UPDATE STUDENT SETTINGS ERROR:", error);
+
+      return ctx.internalServerError(
+        error?.message || "Unable to update your account settings.",
+      );
+    }
+  },
 };
