@@ -403,7 +403,7 @@ export default {
 
       if (new_password.length < 8) {
         return ctx.badRequest(
-          "New password must contain at least 6 characters.",
+          "New password must contain at least 8 characters.",
         );
       }
 

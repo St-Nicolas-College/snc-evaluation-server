@@ -465,4 +465,218 @@ export default {
       );
     }
   },
+
+  async updateMySettings(ctx) {
+    try {
+      const userId = ctx.state.user?.id;
+
+      if (!userId) {
+        return ctx.unauthorized("You must be logged in.");
+      }
+
+      const { email } = ctx.request.body as {
+        email?: string;
+      };
+
+      if (!email || !email.trim()) {
+        return ctx.badRequest("Email address is required.");
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+
+      /*
+       * =====================================================
+       * GET TEACHER LINKED TO LOGGED-IN USER
+       * =====================================================
+       */
+
+      const teacher = await strapi.db.query("api::teacher.teacher").findOne({
+        where: {
+          user: {
+            id: userId,
+          },
+        },
+
+        populate: {
+          user: true,
+          department: true,
+        },
+      });
+
+      if (!teacher) {
+        return ctx.notFound("Teacher profile not found.");
+      }
+
+      const linkedUser: any = teacher.user;
+
+      if (!linkedUser?.id) {
+        return ctx.badRequest("Linked user account not found.");
+      }
+
+      /*
+       * =====================================================
+       * CHECK WHETHER EMAIL IS ALREADY USED
+       * =====================================================
+       */
+
+      const duplicateUser = await strapi.db
+        .query("plugin::users-permissions.user")
+        .findOne({
+          where: {
+            email: normalizedEmail,
+          },
+        });
+
+      if (duplicateUser && duplicateUser.id !== linkedUser.id) {
+        return ctx.badRequest("Email address is already in use.");
+      }
+
+      
+      /*
+       * =====================================================
+       * UPDATE USERS & PERMISSIONS ACCOUNT
+       * =====================================================
+       */
+
+      await strapi.db.query("plugin::users-permissions.user").update({
+        where: {
+          id: linkedUser.id,
+        },
+
+        data: {
+          email: normalizedEmail,
+        },
+      });
+
+      /*
+       * =====================================================
+       * RETURN REFRESHED TEACHER PROFILE
+       * =====================================================
+       */
+
+      const updatedTeacher = await strapi
+        .documents("api::teacher.teacher")
+        .findOne({
+          documentId: teacher.documentId,
+
+          populate: {
+            user: true,
+            department: true,
+          },
+        });
+
+      return ctx.send({
+        message: "Account information updated successfully.",
+
+        data: updatedTeacher,
+      });
+    } catch (error: any) {
+      console.error("UPDATE TEACHER SETTINGS ERROR:", error);
+
+      return ctx.internalServerError(
+        error?.message || "Unable to update your account settings.",
+      );
+    }
+  },
+
+  async changeMyPassword(ctx) {
+    try {
+      const userId = ctx.state.user?.id;
+
+      if (!userId) {
+        return ctx.unauthorized("You must be logged in.");
+      }
+
+      const { current_password, new_password } = ctx.request.body as {
+        current_password?: string;
+        new_password?: string;
+      };
+
+      if (!current_password || !new_password) {
+        return ctx.badRequest(
+          "Current password and new password are required.",
+        );
+      }
+
+      if (new_password.length < 8) {
+        return ctx.badRequest(
+          "New password must contain at least 8 characters.",
+        );
+      }
+
+      /*
+       * =====================================================
+       * GET CURRENT USER
+       * =====================================================
+       */
+
+      const currentUser = await strapi.db
+        .query("plugin::users-permissions.user")
+        .findOne({
+          where: {
+            id: userId,
+          },
+
+          populate: {
+            role: true,
+          },
+        });
+
+      if (!currentUser) {
+        return ctx.notFound("User account not found.");
+      }
+
+      /*
+       * =====================================================
+       * VERIFY CURRENT PASSWORD
+       * =====================================================
+       */
+
+      const validPassword = await strapi
+        .plugin("users-permissions")
+        .service("user")
+        .validatePassword(current_password, currentUser.password);
+
+      if (!validPassword) {
+        return ctx.badRequest("Current password is incorrect.");
+      }
+
+      /*
+       * =====================================================
+       * PREVENT REUSING CURRENT PASSWORD
+       * =====================================================
+       */
+
+      const samePassword = await strapi
+        .plugin("users-permissions")
+        .service("user")
+        .validatePassword(new_password, currentUser.password);
+
+      if (samePassword) {
+        return ctx.badRequest(
+          "New password must be different from your current password.",
+        );
+      }
+
+      /*
+       * =====================================================
+       * UPDATE PASSWORD
+       * =====================================================
+       */
+
+      await strapi.plugin("users-permissions").service("user").edit(userId, {
+        password: new_password,
+      });
+
+      return ctx.send({
+        message: "Password changed successfully.",
+      });
+    } catch (error: any) {
+      console.error("CHANGE TEACHER PASSWORD ERROR:", error);
+
+      return ctx.internalServerError(
+        error?.message || "Unable to change your password.",
+      );
+    }
+  },
 };
