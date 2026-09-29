@@ -531,7 +531,6 @@ export default {
         return ctx.badRequest("Email address is already in use.");
       }
 
-      
       /*
        * =====================================================
        * UPDATE USERS & PERMISSIONS ACCOUNT
@@ -665,6 +664,8 @@ export default {
        */
 
       await strapi.plugin("users-permissions").service("user").edit(userId, {
+        username: currentUser.username,
+        email: currentUser.email,
         password: new_password,
       });
 
