@@ -1,246 +1,299 @@
-export default {
-  async registerStudent(ctx) {
-    let createdUserId: number | null = null;
+const requireStudentManagementAccess = async (ctx: any) => {
+  const userId = ctx.state.user?.id;
+  if (!userId) ctx.throw(401, "Authentication required.");
 
-    try {
-      const { student_id, name, course, year_level, section, email, password } =
-        ctx.request.body;
+  const user = await strapi.db.query("plugin::users-permissions.user").findOne({
+    where: { id: userId },
+    populate: { role: true },
+  });
+  if (!user || user.blocked) ctx.throw(401, "Invalid user account.");
 
-      /*
-       * -----------------------------------------------------
-       * NORMALIZE INPUT
-       * -----------------------------------------------------
-       */
+  const roleName = String(user.role?.name || "")
+    .trim()
+    .toLowerCase();
+  if (!["admin", "hr"].includes(roleName)) {
+    ctx.throw(403, "Only Admin and HR accounts can manage students.");
+  }
+  return user;
+};
 
-      const normalizedStudentId = String(student_id || "").trim();
-      const normalizedName = String(name || "").trim();
-      const normalizedEmail = String(email || "")
-        .trim()
-        .toLowerCase();
-      const normalizedYearLevel = String(year_level || "").trim();
-      const normalizedSection = String(section || "").trim();
+const createStudentAccount = async (ctx: any, imported: boolean) => {
+  let createdUserId: number | null = null;
 
-      /*
-       * Student ID will always be the login username.
-       * Do not accept a user-defined username from the browser.
-       */
-      const username = normalizedStudentId;
+  try {
+    const { student_id, name, course, year_level, section, email } =
+      ctx.request.body || {};
+    const password = imported
+      ? process.env.STUDENT_IMPORT_TEMP_PASSWORD
+      : ctx.request.body?.password;
 
-      /*
-       * -----------------------------------------------------
-       * REQUIRED FIELD VALIDATION
-       * -----------------------------------------------------
-       */
+    /*
+     * -----------------------------------------------------
+     * NORMALIZE INPUT
+     * -----------------------------------------------------
+     */
 
-      if (
-        !normalizedStudentId ||
-        !normalizedName ||
-        !course ||
-        !normalizedYearLevel ||
-        !normalizedSection ||
-        !normalizedEmail ||
-        !password
-      ) {
-        return ctx.badRequest("Complete all required registration fields.");
-      }
+    const normalizedStudentId = String(student_id || "").trim();
+    const normalizedName = String(name || "").trim();
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
+    const normalizedYearLevel = String(year_level || "").trim();
+    const normalizedSection = String(section || "").trim();
 
-      /*
-       * -----------------------------------------------------
-       * BASIC EMAIL VALIDATION
-       * -----------------------------------------------------
-       */
+    /*
+     * Student ID will always be the login username.
+     * Do not accept a user-defined username from the browser.
+     */
+    const username = normalizedStudentId;
 
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    /*
+     * -----------------------------------------------------
+     * REQUIRED FIELD VALIDATION
+     * -----------------------------------------------------
+     */
 
-      if (!emailPattern.test(normalizedEmail)) {
-        return ctx.badRequest("Enter a valid email address.");
-      }
+    if (
+      !normalizedStudentId ||
+      !normalizedName ||
+      !course ||
+      !normalizedYearLevel ||
+      !normalizedSection ||
+      !normalizedEmail ||
+      !password
+    ) {
+      return ctx.badRequest("Complete all required registration fields.");
+    }
 
-      /*
-       * -----------------------------------------------------
-       * PASSWORD VALIDATION
-       * -----------------------------------------------------
-       */
+    /*
+     * -----------------------------------------------------
+     * BASIC EMAIL VALIDATION
+     * -----------------------------------------------------
+     */
 
-      if (String(password).length < 6) {
-        return ctx.badRequest("Password must contain at least 6 characters.");
-      }
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-      /*
-       * -----------------------------------------------------
-       * CHECK STUDENT ID
-       * -----------------------------------------------------
-       */
+    if (!emailPattern.test(normalizedEmail)) {
+      return ctx.badRequest("Enter a valid email address.");
+    }
 
-      const existingStudent = await strapi.db
-        .query("api::student.student")
-        .findOne({
-          where: {
-            student_id: normalizedStudentId,
-          },
-        });
+    /*
+     * -----------------------------------------------------
+     * PASSWORD VALIDATION
+     * -----------------------------------------------------
+     */
 
-      if (existingStudent) {
-        return ctx.badRequest("Student ID is already registered.");
-      }
-
-      /*
-       * -----------------------------------------------------
-       * CHECK USERNAME / EMAIL
-       * -----------------------------------------------------
-       */
-
-      const existingUser = await strapi.db
-        .query("plugin::users-permissions.user")
-        .findOne({
-          where: {
-            $or: [
-              {
-                username,
-              },
-              {
-                email: normalizedEmail,
-              },
-            ],
-          },
-        });
-
-      if (existingUser) {
-        if (existingUser.username === username) {
-          return ctx.badRequest(
-            "Student ID is already being used as an account username.",
-          );
-        }
-
-        return ctx.badRequest("Email address is already registered.");
-      }
-
-      /*
-       * -----------------------------------------------------
-       * VERIFY COURSE
-       * -----------------------------------------------------
-       */
-
-      const selectedCourse = await strapi.entityService.findOne(
-        "api::course.course",
-        course,
-      );
-
-      if (!selectedCourse) {
-        return ctx.badRequest("Selected course is invalid.");
-      }
-
-      /*
-       * -----------------------------------------------------
-       * GET STUDENT ROLE
-       * -----------------------------------------------------
-       */
-
-      const role = await strapi.db
-        .query("plugin::users-permissions.role")
-        .findOne({
-          where: {
-            name: "Student",
-          },
-        });
-
-      if (!role) {
-        return ctx.internalServerError("Student role is not configured.");
-      }
-
-      /*
-       * -----------------------------------------------------
-       * CREATE USERS & PERMISSIONS ACCOUNT
-       * -----------------------------------------------------
-       */
-
-      const user = await strapi.plugins["users-permissions"].services.user.add({
-        username,
-        email: normalizedEmail,
-        password,
-        confirmed: true,
-        blocked: false,
-        role: role.id,
-      });
-
-      createdUserId = user.id;
-
-      /*
-       * -----------------------------------------------------
-       * CREATE STUDENT PROFILE
-       * -----------------------------------------------------
-       */
-
-      const student = await strapi.documents("api::student.student").create({
-        data: {
-          student_id: normalizedStudentId,
-          name: normalizedName,
-          email: normalizedEmail,
-          course,
-          year_level: normalizedYearLevel,
-          section: normalizedSection,
-          user: user.id,
-        },
-        populate: {
-          user: true,
-          course: true,
-        },
-      });
-
-      /*
-       * -----------------------------------------------------
-       * SUCCESS
-       * -----------------------------------------------------
-       */
-
-      return ctx.send({
-        message: "Student account created successfully.",
-
-        data: {
-          id: student.id,
-          documentId: student.documentId,
-          student_id: student.student_id,
-          name: student.name,
-          email: student.email,
-          year_level: student.year_level,
-          section: student.section,
-          course: student.course,
-          username: user.username,
-        },
-      });
-    } catch (error: any) {
-      console.error("REGISTER STUDENT ERROR:", error);
-
-      /*
-       * -----------------------------------------------------
-       * CLEAN UP ORPHAN USER
-       * -----------------------------------------------------
-       *
-       * If the Users & Permissions account was created but
-       * Student profile creation failed, remove the user so
-       * we don't leave an orphan login account.
-       */
-
-      if (createdUserId) {
-        try {
-          await strapi.db.query("plugin::users-permissions.user").delete({
-            where: {
-              id: createdUserId,
-            },
-          });
-        } catch (cleanupError) {
-          console.error("REGISTER STUDENT CLEANUP ERROR:", cleanupError);
-        }
-      }
-
-      return ctx.internalServerError(
-        error?.message || "Something went wrong while registering the student.",
+    if (String(password).length < (imported ? 12 : 6)) {
+      return ctx.badRequest(
+        imported
+          ? "Server temporary password must be at least 12 characters."
+          : "Password must contain at least 6 characters.",
       );
     }
+
+    /*
+     * -----------------------------------------------------
+     * CHECK STUDENT ID
+     * -----------------------------------------------------
+     */
+
+    const existingStudent = await strapi.db
+      .query("api::student.student")
+      .findOne({
+        where: {
+          student_id: normalizedStudentId,
+        },
+      });
+
+    if (existingStudent) {
+      return ctx.badRequest("Student ID is already registered.");
+    }
+
+    /*
+     * -----------------------------------------------------
+     * CHECK USERNAME / EMAIL
+     * -----------------------------------------------------
+     */
+
+    const existingUser = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({
+        where: {
+          $or: [
+            {
+              username,
+            },
+            {
+              email: normalizedEmail,
+            },
+          ],
+        },
+      });
+
+    if (existingUser) {
+      if (existingUser.username === username) {
+        return ctx.badRequest(
+          "Student ID is already being used as an account username.",
+        );
+      }
+
+      return ctx.badRequest("Email address is already registered.");
+    }
+
+    /*
+     * -----------------------------------------------------
+     * VERIFY COURSE
+     * -----------------------------------------------------
+     */
+
+    const selectedCourse = await strapi.entityService.findOne(
+      "api::course.course",
+      course,
+    );
+
+    if (!selectedCourse) {
+      return ctx.badRequest("Selected course is invalid.");
+    }
+
+    /*
+     * -----------------------------------------------------
+     * GET STUDENT ROLE
+     * -----------------------------------------------------
+     */
+
+    const role = await strapi.db
+      .query("plugin::users-permissions.role")
+      .findOne({
+        where: {
+          name: "Student",
+        },
+      });
+
+    if (!role) {
+      return ctx.internalServerError("Student role is not configured.");
+    }
+
+    /*
+     * -----------------------------------------------------
+     * CREATE USERS & PERMISSIONS ACCOUNT
+     * -----------------------------------------------------
+     */
+
+    const user = await strapi.plugins["users-permissions"].services.user.add({
+      username,
+      email: normalizedEmail,
+      password,
+      confirmed: true,
+      blocked: false,
+      must_change_password: imported,
+      role: role.id,
+    });
+
+    createdUserId = user.id;
+    // Persist the flag explicitly in case the Users & Permissions add service
+    // does not retain custom fields.
+    await strapi.db.query("plugin::users-permissions.user").update({
+      where: { id: user.id },
+      data: { must_change_password: imported },
+    });
+
+    /*
+     * -----------------------------------------------------
+     * CREATE STUDENT PROFILE
+     * -----------------------------------------------------
+     */
+
+    const student = await strapi.documents("api::student.student").create({
+      data: {
+        student_id: normalizedStudentId,
+        name: normalizedName,
+        email: normalizedEmail,
+        course,
+        year_level: normalizedYearLevel,
+        section: normalizedSection,
+        user: user.id,
+      },
+      populate: {
+        user: true,
+        course: true,
+      },
+    });
+
+    /*
+     * -----------------------------------------------------
+     * SUCCESS
+     * -----------------------------------------------------
+     */
+
+    return ctx.send({
+      message: "Student account created successfully.",
+
+      data: {
+        id: student.id,
+        documentId: student.documentId,
+        student_id: student.student_id,
+        name: student.name,
+        email: student.email,
+        year_level: student.year_level,
+        section: student.section,
+        course: student.course,
+        username: user.username,
+      },
+    });
+  } catch (error: any) {
+    console.error("REGISTER STUDENT ERROR:", error);
+
+    /*
+     * -----------------------------------------------------
+     * CLEAN UP ORPHAN USER
+     * -----------------------------------------------------
+     *
+     * If the Users & Permissions account was created but
+     * Student profile creation failed, remove the user so
+     * we don't leave an orphan login account.
+     */
+
+    if (createdUserId) {
+      try {
+        await strapi.db.query("plugin::users-permissions.user").delete({
+          where: {
+            id: createdUserId,
+          },
+        });
+      } catch (cleanupError) {
+        console.error("REGISTER STUDENT CLEANUP ERROR:", cleanupError);
+      }
+    }
+
+    return ctx.internalServerError(
+      "Something went wrong while registering the student.",
+    );
+  }
+};
+
+export default {
+  async registerStudent(ctx) {
+    await requireStudentManagementAccess(ctx);
+    return createStudentAccount(ctx, false);
+  },
+
+  async importStudents(ctx) {
+    await requireStudentManagementAccess(ctx);
+     
+    if (
+      !process.env.STUDENT_IMPORT_TEMP_PASSWORD ||
+      process.env.STUDENT_IMPORT_TEMP_PASSWORD.length < 12
+    ) {
+      return ctx.internalServerError(
+        "Student import password is not configured securely.",
+      );
+    }
+    return createStudentAccount(ctx, true);
   },
 
   // ✅ UPDATE
   async updateStudentWithUser(ctx) {
+    await requireStudentManagementAccess(ctx);
     try {
       const { id } = ctx.params;
       const {
@@ -346,6 +399,7 @@ export default {
 
   // ✅ DELETE
   async deleteStudentWithUser(ctx) {
+    await requireStudentManagementAccess(ctx);
     try {
       const { id } = ctx.params;
 
@@ -471,6 +525,10 @@ export default {
 
       await strapi.plugin("users-permissions").service("user").edit(userId, {
         password: new_password,
+      });
+      await strapi.db.query("plugin::users-permissions.user").update({
+        where: { id: userId },
+        data: { must_change_password: false },
       });
 
       return ctx.send({

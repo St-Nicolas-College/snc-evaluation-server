@@ -2652,6 +2652,10 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    must_change_password: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private &
+      Schema.Attribute.DefaultTo<false>;
     overall_feedbacks: Schema.Attribute.Relation<
       'oneToMany',
       'api::overall-feedback.overall-feedback'

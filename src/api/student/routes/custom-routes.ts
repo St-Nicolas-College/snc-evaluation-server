@@ -4,21 +4,25 @@ export default {
       method: "POST",
       path: "/students/register",
       handler: "custom-controller.registerStudent",
-      config: {
-        auth: false,
-      },
+      config: {},
+    },
+    {
+      method: "POST",
+      path: "/students/import",
+      handler: "custom-controller.importStudents",
+      config: {},
     },
     {
       method: "PUT",
       path: "/students/update-with-user/:id",
       handler: "custom-controller.updateStudentWithUser",
-      config: { auth: false },
+      config: {},
     },
     {
       method: "DELETE",
       path: "/students/delete-with-user/:id",
       handler: "custom-controller.deleteStudentWithUser",
-      config: { auth: false },
+      config: {},
     },
     {
       method: "PUT",
@@ -32,6 +36,5 @@ export default {
       handler: "custom-controller.changeMyPassword",
       config: {},
     },
-    
   ],
 };

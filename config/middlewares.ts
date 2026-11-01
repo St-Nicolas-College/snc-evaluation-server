@@ -11,6 +11,8 @@ const config: Core.Config.Middlewares = [
   'strapi::session',
   'strapi::favicon',
   'strapi::public',
+
+  "global::require-password-change",
 ];
 
 export default config;
