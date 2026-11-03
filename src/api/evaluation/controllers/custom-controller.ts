@@ -1,4 +1,5 @@
 import { analyzeFeedbackSentiment } from "../utils/openai-sentiment";
+import { moderateFacultyFeedback } from "../utils/openai-moderation";
 
 type EvaluationItem = {
   teacher?: number;
@@ -297,24 +298,31 @@ export default {
   // },
 
   async submitMultipleEvaluations(ctx) {
+    type EvaluationItem = {
+      teacher?: number;
+      subject?: number;
+      dean_coordinator?: number;
+      responses: Record<string, number>;
+      comment?: string;
+      strengths?: string;
+      areas_for_improvement?: string;
+      effectiveness?: string;
+      suggested_activities?: string;
+    };
+
+    class SubmissionValidationError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = "SubmissionValidationError";
+      }
+    }
+
     try {
       const userId = ctx.state.user?.id;
 
       if (!userId) {
         return ctx.unauthorized("User not authenticated.");
       }
-
-      type EvaluationItem = {
-        teacher?: number;
-        subject?: number;
-        dean_coordinator?: number;
-        responses: Record<string, number>;
-        comment?: string;
-        strengths?: string;
-        areas_for_improvement?: string;
-        effectiveness?: string;
-        suggested_activities?: string;
-      };
 
       const {
         evaluation_type,
@@ -325,7 +333,7 @@ export default {
         days_time,
         department,
         evaluations,
-      } = ctx.request.body as {
+      } = (ctx.request.body ?? {}) as {
         evaluation_type: number;
         semester: string;
         school_year: string;
@@ -340,10 +348,10 @@ export default {
         !evaluation_type ||
         !semester ||
         !school_year ||
-        !evaluations ||
-        !Array.isArray(evaluations)
+        !Array.isArray(evaluations) ||
+        evaluations.length === 0
       ) {
-        return ctx.badRequest("Missing required fields.");
+        return ctx.badRequest("Missing required fields or evaluations.");
       }
 
       const evalType = await strapi.entityService.findOne(
@@ -356,38 +364,36 @@ export default {
       }
 
       const isStudentFaculty = evalType.code === "student-faculty";
+
       const isFacultyDean = evalType.code === "faculty-dean-coordinator";
-      const isDeanFaculty = evalType?.code === "dean-faculty";
 
-      const batch = await strapi.entityService.create(
-        "api::evaluation-batch.evaluation-batch",
-        {
-          data: {
-            evaluation_type,
-            semester,
-            school_year,
-            date,
-            course,
-            days_time,
-            department,
-          },
-        },
-      );
+      const isDeanFaculty = evalType.code === "dean-faculty";
 
-      const createdEvaluations = [];
+      if (!isStudentFaculty && !isFacultyDean && !isDeanFaculty) {
+        return ctx.badRequest("Unsupported evaluation type.");
+      }
+
+      /*
+       * STEP 1: VALIDATE ALL EVALUATIONS
+       *
+       * No database records are created here.
+       */
+
+      const submittedTargets = new Set<string>();
 
       for (const item of evaluations) {
-        if (!item.responses) {
-          return ctx.badRequest("Responses are required.");
+        if (
+          !item.responses ||
+          typeof item.responses !== "object" ||
+          Array.isArray(item.responses) ||
+          Object.keys(item.responses).length === 0
+        ) {
+          return ctx.badRequest("Evaluation responses are required.");
         }
 
         if (isStudentFaculty && !item.teacher) {
           return ctx.badRequest("Teacher is required for student evaluation.");
         }
-
-        // if (isStudentFaculty && !item.subject) {
-        //   return ctx.badRequest("Subject is required for student evaluation.");
-        // }
 
         if (isFacultyDean && !item.dean_coordinator) {
           return ctx.badRequest("Dean/Coordinator is required.");
@@ -399,111 +405,115 @@ export default {
           );
         }
 
-        // console.log("duplicate check values:", {
-        //   userId,
-        //   teacher: item.teacher,
-        //   subject: item.subject,
-        //   semester,
-        //   school_year,
-        //   evaluation_type,
-        // });
+        const targetKey = isFacultyDean
+          ? `dean:${item.dean_coordinator}`
+          : `teacher:${item.teacher}`;
 
-        // Check for duplicate evaluation for student - faculty evaluation
-        if (isStudentFaculty) {
-          if (!item.teacher) {
-            return ctx.badRequest(
-              "Teacher are required for student evaluation.",
-            );
-          }
-
-          const existing = await strapi.db
-            .query("api::evaluation.evaluation")
-            .findOne({
-              where: {
-                evaluator_user: {
-                  id: userId,
-                },
-                teacher: {
-                  id: item.teacher,
-                },
-                batch: {
-                  semester,
-                  school_year,
-                  evaluation_type: {
-                    id: evaluation_type,
-                  },
-                },
-              },
-            });
-
-          if (existing) {
-            return ctx.badRequest(
-              "You already evaluated this teacher for this subject in this semester and school year.",
-            );
-          }
+        if (submittedTargets.has(targetKey)) {
+          return ctx.badRequest(
+            "The same evaluation target was submitted more than once.",
+          );
         }
 
-        // Check for duplicate evaluation for faculty - dean evaluation
-        if (isFacultyDean) {
-          const existing = await strapi.db
-            .query("api::evaluation.evaluation")
-            .findOne({
-              where: {
-                evaluator_user: {
-                  id: userId,
-                },
-                dean_coordinator: {
-                  id: item.dean_coordinator,
-                },
-                batch: {
-                  semester,
-                  school_year,
-                  evaluation_type: {
-                    id: evaluation_type,
-                  },
+        submittedTargets.add(targetKey);
+
+        const criterionIds = Object.keys(item.responses);
+
+        if (
+          criterionIds.some(
+            (id) =>
+              !Number.isInteger(Number(id)) ||
+              Number(id) <= 0 ||
+              !Number.isFinite(Number(item.responses[id])),
+          )
+        ) {
+          return ctx.badRequest("Invalid evaluation criterion or score.");
+        }
+      }
+
+      /*
+       * STEP 2: AI FEEDBACK MODERATION
+       *
+       * Only student-faculty comments are moderated.
+       * Written feedback remains optional.
+       */
+
+      if (isStudentFaculty) {
+        for (let index = 0; index < evaluations.length; index++) {
+          const item = evaluations[index];
+
+          const comment = String(item.comment ?? "").trim();
+
+          if (!comment) {
+            continue;
+          }
+
+          let moderation;
+
+          try {
+            moderation = await moderateFacultyFeedback(comment);
+          } catch (moderationError) {
+            strapi.log.error(
+              `Faculty feedback moderation failed: ${
+                moderationError instanceof Error
+                  ? moderationError.message
+                  : String(moderationError)
+              }`,
+            );
+
+            ctx.status = 503;
+            ctx.body = {
+              data: null,
+              error: {
+                status: 503,
+                name: "ServiceUnavailableError",
+                message:
+                  "Feedback verification is temporarily unavailable. " +
+                  "Please try submitting your evaluation again.",
+              },
+            };
+
+            return;
+          }
+
+          if (!moderation.approved) {
+            ctx.status = 400;
+            ctx.body = {
+              data: null,
+              error: {
+                status: 400,
+                name: "FeedbackModerationError",
+                message:
+                  `Feedback for faculty evaluation ${index + 1} ` +
+                  "needs revision.",
+                details: {
+                  code: "FEEDBACK_MODERATION_REJECTED",
+                  evaluationIndex: index,
+                  teacherId: item.teacher,
+                  category: moderation.category,
+                  reason: moderation.reason,
+                  suggestion: moderation.suggestion,
                 },
               },
-            });
+            };
 
-          if (existing) {
-            return ctx.badRequest(
-              "You already evaluated this dean/coordinator for this semester and school year.",
-            );
+            return;
           }
         }
+      }
 
-        // Check for duplicate evaluation for dean - faculty evaluation
-        if (isDeanFaculty) {
-          const existing = await strapi.db
-            .query("api::evaluation.evaluation")
-            .findOne({
-              where: {
-                evaluator_user: {
-                  id: userId,
-                },
-                teacher: {
-                  id: item.teacher,
-                },
-                batch: {
-                  semester,
-                  school_year,
-                  evaluation_type: {
-                    id: evaluation_type,
-                  },
-                },
-              },
-            });
+      /*
+       * STEP 3: PREPARE EVALUATION DATA
+       *
+       * Resolve criteria, calculate scores, and
+       * perform sentiment analysis before opening
+       * the database transaction.
+       */
 
-          if (existing) {
-            return ctx.badRequest(
-              "You already evaluated this faculty member for this semester and school year.",
-            );
-          }
-        }
+      const preparedEvaluations: any[] = [];
 
-        const criterionIds = Object.keys(item.responses).map((id) =>
-          Number(id),
-        );
+      for (const item of evaluations) {
+        const criterionIds = Object.keys(item.responses).map(Number);
 
         const criteria: any = await strapi.entityService.findMany(
           "api::evaluation-criteria.evaluation-criteria",
@@ -524,6 +534,10 @@ export default {
             },
           },
         );
+
+        if (criteria.length !== criterionIds.length) {
+          return ctx.badRequest("One or more evaluation criteria are invalid.");
+        }
 
         const enrichedResponses = criteria.map((criterion: any) => ({
           section: criterion.section?.title || "",
@@ -551,7 +565,7 @@ export default {
           ? Number((total_score / enrichedResponses.length).toFixed(2))
           : 0;
 
-        const comment = item.comment || "";
+        const comment = String(item.comment ?? "");
 
         let sentimentResult = {
           sentiment: "Neutral",
@@ -565,10 +579,7 @@ export default {
           sentimentResult = await analyzeFeedbackSentiment(comment);
         }
 
-        // const sentimentResult = await analyzeFeedbackSentiment(comment);
-
         const evaluationData: any = {
-          batch: batch.id,
           evaluator_user: userId,
           responses: enrichedResponses,
           total_score,
@@ -598,27 +609,165 @@ export default {
           evaluationData.teacher = item.teacher;
         }
 
-        const evaluation = await strapi.entityService.create(
-          "api::evaluation.evaluation",
+        preparedEvaluations.push(evaluationData);
+      }
+
+      /*
+       * STEP 4: DATABASE TRANSACTION
+       *
+       * All database writes must succeed together.
+       * Throwing an error causes rollback.
+       */
+
+      const result = await strapi.db.transaction(async () => {
+        /*
+         * Check duplicates inside the transaction
+         * before creating the batch.
+         */
+
+        for (const item of evaluations) {
+          let existing = null;
+
+          if (isStudentFaculty || isDeanFaculty) {
+            existing = await strapi.db
+              .query("api::evaluation.evaluation")
+              .findOne({
+                where: {
+                  evaluator_user: {
+                    id: userId,
+                  },
+                  teacher: {
+                    id: item.teacher,
+                  },
+                  batch: {
+                    semester,
+                    school_year,
+                    evaluation_type: {
+                      id: evaluation_type,
+                    },
+                  },
+                },
+              });
+          }
+
+          if (isFacultyDean) {
+            existing = await strapi.db
+              .query("api::evaluation.evaluation")
+              .findOne({
+                where: {
+                  evaluator_user: {
+                    id: userId,
+                  },
+                  dean_coordinator: {
+                    id: item.dean_coordinator,
+                  },
+                  batch: {
+                    semester,
+                    school_year,
+                    evaluation_type: {
+                      id: evaluation_type,
+                    },
+                  },
+                },
+              });
+          }
+
+          if (existing) {
+            if (isStudentFaculty) {
+              throw new SubmissionValidationError(
+                "You already evaluated this teacher " +
+                  "for this semester and school year.",
+              );
+            }
+
+            if (isFacultyDean) {
+              throw new SubmissionValidationError(
+                "You already evaluated this dean/coordinator " +
+                  "for this semester and school year.",
+              );
+            }
+
+            throw new SubmissionValidationError(
+              "You already evaluated this faculty member " +
+                "for this semester and school year.",
+            );
+          }
+        }
+
+        /*
+         * Create the evaluation batch.
+         */
+
+        const batch = await strapi.entityService.create(
+          "api::evaluation-batch.evaluation-batch",
           {
-            data: evaluationData,
+            data: {
+              evaluation_type,
+              semester,
+              school_year,
+              date,
+              course,
+              days_time,
+              department,
+            },
           },
         );
 
-        createdEvaluations.push(evaluation);
-      }
+        const createdEvaluations = [];
+
+        /*
+         * Create all evaluations.
+         *
+         * If any creation fails, the transaction
+         * rolls back all earlier writes.
+         */
+
+        for (const prepared of preparedEvaluations) {
+          const evaluation = await strapi.entityService.create(
+            "api::evaluation.evaluation",
+            {
+              data: {
+                ...prepared,
+                batch: batch.id,
+              },
+            },
+          );
+
+          createdEvaluations.push(evaluation);
+        }
+
+        return {
+          batchId: batch.id,
+          evaluations: createdEvaluations,
+        };
+      });
+
+      /*
+       * STEP 5: SUCCESS RESPONSE
+       *
+       * Sent only after the transaction commits.
+       */
 
       return ctx.send({
         message: "Evaluations submitted successfully.",
-        batchId: batch.id,
+        batchId: result.batchId,
         type: evalType.code,
-        count: createdEvaluations.length,
-        data: createdEvaluations,
+        count: result.evaluations.length,
+        data: result.evaluations,
       });
     } catch (error) {
-      console.error("SUBMIT EVALUATION ERROR:", error);
+      if (error instanceof SubmissionValidationError) {
+        return ctx.badRequest(error.message);
+      }
+
+      strapi.log.error(
+        `SUBMIT EVALUATION ERROR: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+
       return ctx.internalServerError(
-        error.message || "Something went wrong while submitting evaluations.",
+        "Something went wrong while submitting evaluations.",
       );
     }
   },
