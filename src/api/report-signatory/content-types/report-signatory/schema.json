@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "report_signatories",
+  "info": {
+    "singularName": "report-signatory",
+    "pluralName": "report-signatories",
+    "displayName": "Report Signatory"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "signatory_name": {
+      "type": "string",
+      "required": true
+    },
+    "signatory_position": {
+      "type": "string"
+    },
+    "signatory_role": {
+      "type": "enumeration",
+      "enum": [
+        "prepared_by",
+        "reviewed_by",
+        "approved_by"
+      ]
+    },
+    "signature": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "display_order": {
+      "type": "integer",
+      "default": 1
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

@@ -1796,6 +1796,42 @@ export interface ApiRefreshTokenRefreshToken
   };
 }
 
+export interface ApiReportSignatoryReportSignatory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'report_signatories';
+  info: {
+    displayName: 'Report Signatory';
+    pluralName: 'report-signatories';
+    singularName: 'report-signatory';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    display_order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
+    is_active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::report-signatory.report-signatory'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    signatory_name: Schema.Attribute.String & Schema.Attribute.Required;
+    signatory_position: Schema.Attribute.String;
+    signatory_role: Schema.Attribute.Enumeration<
+      ['prepared_by', 'reviewed_by', 'approved_by']
+    >;
+    signature: Schema.Attribute.Media<'images'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSalaryRateSalaryRate extends Struct.CollectionTypeSchema {
   collectionName: 'salary_rates';
   info: {
@@ -2725,6 +2761,7 @@ declare module '@strapi/strapi' {
       'api::ranking-scheme.ranking-scheme': ApiRankingSchemeRankingScheme;
       'api::rate-step.rate-step': ApiRateStepRateStep;
       'api::refresh-token.refresh-token': ApiRefreshTokenRefreshToken;
+      'api::report-signatory.report-signatory': ApiReportSignatoryReportSignatory;
       'api::salary-rate.salary-rate': ApiSalaryRateSalaryRate;
       'api::scale-option.scale-option': ApiScaleOptionScaleOption;
       'api::school-year.school-year': ApiSchoolYearSchoolYear;
