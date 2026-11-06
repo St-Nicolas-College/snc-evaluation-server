@@ -3,41 +3,42 @@ import jwt from "jsonwebtoken";
 
 interface TokenPayload {
   id: number;
+  session_version?: number;
   iat?: number;
   exp?: number;
 }
 
+const USER_UID = "plugin::users-permissions.user";
+
 export default (_config: unknown, { strapi }: { strapi: Core.Strapi }) => {
   return async (ctx: any, next: () => Promise<void>) => {
-    // Only enforce restrictions on API routes.
+    // Apply protection only to API routes.
     if (!ctx.path.startsWith("/api/")) {
       return next();
     }
 
-    // Authentication endpoints remain accessible.
-    // Login, refresh, and logout have their own validation.
-    const publicAuthPaths = [
+    // These endpoints manage authentication separately.
+    const publicAuthPaths = new Set([
       "/api/auth/login",
       "/api/auth/refresh",
       "/api/auth/logout",
-    ];
+    ]);
 
-    if (publicAuthPaths.includes(ctx.path)) {
+    if (publicAuthPaths.has(ctx.path)) {
       return next();
     }
 
     const authorization = ctx.request.headers.authorization;
 
-    // Requests without a Bearer token continue through
-    // Strapi's existing authentication and permissions.
+    // Let Strapi handle requests without Bearer tokens.
     if (
       typeof authorization !== "string" ||
-      !authorization.startsWith("Bearer ")
+      !/^Bearer\s+/i.test(authorization)
     ) {
       return next();
     }
 
-    const token = authorization.slice(7).trim();
+    const token = authorization.replace(/^Bearer\s+/i, "").trim();
 
     if (!token) {
       return ctx.unauthorized("Invalid access token.");
@@ -47,6 +48,7 @@ export default (_config: unknown, { strapi }: { strapi: Core.Strapi }) => {
 
     if (!secret) {
       strapi.log.error("JWT_SECRET is not configured.");
+
       return ctx.internalServerError("Authentication configuration error.");
     }
 
@@ -60,7 +62,8 @@ export default (_config: unknown, { strapi }: { strapi: Core.Strapi }) => {
       if (
         !payload ||
         typeof payload.id !== "number" ||
-        !Number.isInteger(payload.id)
+        !Number.isSafeInteger(payload.id) ||
+        payload.id <= 0
       ) {
         return ctx.unauthorized("Invalid access token.");
       }
@@ -68,37 +71,55 @@ export default (_config: unknown, { strapi }: { strapi: Core.Strapi }) => {
       return ctx.unauthorized("Invalid or expired access token.");
     }
 
-    // Read the latest user status from the database.
-    const user = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({
-        where: { id: payload.id },
-        populate: { role: true },
-      });
+    // Always check the current user status in Strapi.
+    const user = await strapi.db.query(USER_UID).findOne({
+      where: { id: payload.id },
+    });
 
-    if (!user || user.blocked) {
-      return ctx.unauthorized("Account is unavailable.");
+    const currentSessionVersion = user.session_version;
+
+    if (
+      !Number.isSafeInteger(currentSessionVersion) ||
+      currentSessionVersion < 0
+    ) {
+      strapi.log.error(`[auth] Invalid session version for user ${user.id}`);
+
+      return ctx.unauthorized("Invalid account session.");
     }
 
-    const isStudent = String(user.role?.name || "").toLowerCase() === "student";
+    // Reject tokens with missing or outdated session versions.
+    if (
+      !Number.isSafeInteger(payload.session_version) ||
+      payload.session_version !== currentSessionVersion
+    ) {
+      return ctx.unauthorized(
+        "Your session has expired. Please sign in again.",
+      );
+    }
 
-    const mustChangePassword = isStudent && user.must_change_password === true;
+    if (!user || user.blocked) {
+      return ctx.unauthorized("This account is blocked or unavailable.");
+    }
 
-    // Normal users are unaffected.
+    // Apply mandatory password changes to ALL roles.
+    const mustChangePassword = user.must_change_password === true;
+
     if (!mustChangePassword) {
       return next();
     }
 
-    // The student must be able to update their password.
-    const isPasswordChangeRequest =
+    // Allow the shared password-change endpoint.
+    const isSharedPasswordChange =
+      ctx.method === "PUT" && ctx.path === "/api/auth/change-password";
+
+    // Retain the existing Student endpoint for compatibility.
+    const isStudentPasswordChange =
       ctx.method === "PUT" && ctx.path === "/api/students/me/change-password";
 
-    if (isPasswordChangeRequest) {
+    if (isSharedPasswordChange || isStudentPasswordChange) {
       return next();
     }
 
-    // All other API requests with this student's token
-    // are blocked until the password is changed.
     return ctx.forbidden(
       "You must change your temporary password before continuing.",
     );

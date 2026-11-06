@@ -65,6 +65,15 @@
       "required": true,
       "private": true
     },
+
+    "session_version": {
+      "type": "integer",
+      "default": 0,
+      "required": true,
+      "min": 0,
+      "private": true
+    },
+
     "role": {
       "type": "relation",
       "relation": "manyToOne",

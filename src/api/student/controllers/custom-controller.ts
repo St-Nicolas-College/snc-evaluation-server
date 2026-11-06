@@ -1,3 +1,5 @@
+import authController from "../../auth/controllers/auth";
+
 const requireStudentManagementAccess = async (ctx: any) => {
   const userId = ctx.state.user?.id;
   if (!userId) ctx.throw(401, "Authentication required.");
@@ -437,110 +439,7 @@ export default {
   },
 
   async changeMyPassword(ctx) {
-    try {
-      const userId = ctx.state.user?.id;
-
-      if (!userId) {
-        return ctx.unauthorized("You must be logged in.");
-      }
-
-      const { current_password, new_password } = ctx.request.body as {
-        current_password?: string;
-        new_password?: string;
-      };
-
-      if (!current_password || !new_password) {
-        return ctx.badRequest(
-          "Current password and new password are required.",
-        );
-      }
-
-      if (new_password.length < 8) {
-        return ctx.badRequest(
-          "New password must contain at least 8 characters.",
-        );
-      }
-
-      /*
-       * =====================================================
-       * GET CURRENT USER
-       * =====================================================
-       */
-
-      const currentUser = await strapi.db
-        .query("plugin::users-permissions.user")
-        .findOne({
-          where: {
-            id: userId,
-          },
-          populate: {
-            role: true,
-          },
-        });
-
-      if (!currentUser) {
-        return ctx.notFound("User account not found.");
-      }
-
-      /*
-       * =====================================================
-       * VERIFY CURRENT PASSWORD
-       * =====================================================
-       */
-
-      const validPassword = await strapi
-        .plugin("users-permissions")
-        .service("user")
-        .validatePassword(current_password, currentUser.password);
-
-      if (!validPassword) {
-        return ctx.badRequest("Current password is incorrect.");
-      }
-
-      /*
-       * =====================================================
-       * PREVENT SAME PASSWORD
-       * =====================================================
-       */
-
-      const samePassword = await strapi
-        .plugin("users-permissions")
-        .service("user")
-        .validatePassword(new_password, currentUser.password);
-
-      if (samePassword) {
-        return ctx.badRequest(
-          "New password must be different from your current password.",
-        );
-      }
-
-      /*
-       * =====================================================
-       * UPDATE PASSWORD
-       * =====================================================
-       *
-       * Use the Users & Permissions service so the new password
-       * is properly hashed before being stored.
-       */
-
-      await strapi.plugin("users-permissions").service("user").edit(userId, {
-        password: new_password,
-      });
-      await strapi.db.query("plugin::users-permissions.user").update({
-        where: { id: userId },
-        data: { must_change_password: false },
-      });
-
-      return ctx.send({
-        message: "Password changed successfully.",
-      });
-    } catch (error: any) {
-      console.error("CHANGE STUDENT PASSWORD ERROR:", error);
-
-      return ctx.internalServerError(
-        error?.message || "Unable to change your password.",
-      );
-    }
+    return authController.changePassword(ctx);
   },
 
   async updateMySettings(ctx) {
